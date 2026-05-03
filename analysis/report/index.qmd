@@ -767,11 +767,11 @@ dictate what you add next.
 **Related posts:**
 
 - [Configuring the Command Line for Data Science
-  Development](../01-configtermzsh/configtermzsh/analysis/report/index.qmd)
+  Development](/posts/01-configtermzsh/configtermzsh/analysis/report/index.qmd)
   --- terminal and Zsh setup that complements this
   Neovim configuration
 - [Setting Up a GitHub Dotfiles
-  Repository](../24-setupdotfilesongithub/setupdotfilesongithub/analysis/report/index.qmd)
+  Repository](/posts/24-setupdotfilesongithub/setupdotfilesongithub/analysis/report/index.qmd)
   --- version control for your configuration files
 
 **Key resources:**
