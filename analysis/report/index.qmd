@@ -98,7 +98,7 @@ to the dotfiles repository
 I am documenting my learning process here. If you spot
 errors or have better approaches, please let me know.
 
-![Settling in for editor configuration.](media/images/placeholder-coffee-05.jpg){.img-fluid width=30% fig-align="center"}
+![Settling in for editor configuration.](media/images/ambiance1.jpg){.img-fluid width=30% fig-align="center"}
 
 *The Neovim project logo. Neovim extends Vim with Lua
 scripting and an asynchronous architecture.*
