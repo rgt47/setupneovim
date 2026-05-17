@@ -1,6 +1,5 @@
 ---
 title: "Setting Up Neovim as a Data Science IDE"
-subtitle: "A Lua-based configuration for R, Python, and Julia"
 author: "Ronald 'Ryy' G. Thomas"
 date: "2026-02-11"
 categories: [neovim, vim, r, python]
@@ -22,7 +21,7 @@ format:
 ---
 
 ![Neovim logo and editor theme in a
-terminal](media/images/hero.png){.img-fluid width=80%}
+terminal](media/images/hero.png){.img-fluid width=80% fig-align="center"}
 
 *Neovim: a modern fork of Vim designed for extensibility
 through Lua.*
