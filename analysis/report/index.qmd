@@ -43,15 +43,15 @@ for data science workflows where one frequently switches
 between writing code, inspecting output, and editing
 manuscripts.
 
-In this post I describe a practical Neovim configuration
-for data science development on macOS. The setup covers
-plugin management with Lazy, core editor settings, R
+We describe a practical Neovim configuration for data
+science development on macOS. The setup covers plugin
+management with Lazy, core editor settings, R
 integration through Nvim-R, and a set of key mappings
 that streamline the edit-run-inspect cycle. An appendix
 addresses Ubuntu adjustments and working with multiple
 Neovim configurations.
 
-More formally, this post documents the Editor layer (Layer 5)
+More formally, we document the Editor layer (Layer 5)
 of the Workflow Construct described in
 [post 52](/posts/52-workflow-construct/). Neovim is the choice
 of editor at this layer; the layer is substitutable (with Vim,
@@ -112,8 +112,7 @@ the terminal and GUI versions of Neovim:
 brew install neovim neovim-qt
 ```
 
-I recommend setting up convenience aliases in your
-`.zshrc`:
+Convenience aliases in `.zshrc` are recommended:
 
 ```sh
 alias ng="nvim-qt"
@@ -121,7 +120,7 @@ alias nt="nvim"
 ```
 
 The mnemonic is straightforward: `nt` for terminal,
-`ng` for GUI. If you are on Ubuntu Linux, see the
+`ng` for GUI. Ubuntu Linux users should see the
 appendix at the end of this post for platform-specific
 adjustments.
 
@@ -129,7 +128,7 @@ adjustments.
 terminal, a general understanding of what a text editor
 does, and comfort navigating the file system from the
 command line. No prior Vim experience is required,
-though it helps.
+though it helps considerably.
 
 # What is Neovim?
 
@@ -162,7 +161,7 @@ Unix-like systems is `~/.config/nvim`. The main entry
 point is either `init.vim` (Vimscript) or `init.lua`
 (Lua). In this post we use Lua exclusively.
 
-Below is the file hierarchy we will construct. All the
+Below is the file hierarchy we construct. All the
 code in the `lua` subdirectory could be bundled into
 `init.lua`, but separating concerns into individual
 files is clearer and easier to maintain.
@@ -411,8 +410,8 @@ map('i', '<Esc>', '<Esc>`^', opts)
 
 The semicolon and colon swap (`':'` to `';'` and vice
 versa) deserves special mention. In Vim, the colon
-enters command mode --- one of the most frequent
-actions. Swapping it to the semicolon key eliminates
+enters command mode (one of the most frequent
+actions). Swapping it to the semicolon key eliminates
 the need to hold Shift, saving thousands of keystrokes
 over time.
 
@@ -574,8 +573,8 @@ If `:checkhealth` shows red for clipboard, install
    sequence in Neovim's built-in terminal is
    `<C-\><C-n>`, which is awkward. The mapping
    `map('t', '<Escape>', '<C-\\><C-n>', opts)` in
-   our configuration fixes this, but it means you
-   cannot type a literal Escape in terminal mode
+   our configuration fixes this, but it means a
+   literal Escape cannot be typed in terminal mode
    without an alternative binding.
 
 4. **R console startup.** With `R_auto_start = 2`,
@@ -667,7 +666,7 @@ one's tools and methods.*
   underscores.
 - Neovim's built-in terminal uses terminal mode, not
   normal mode. Mappings defined for normal mode do not
-  apply until you escape back to normal mode with the
+  apply until one escapes back to normal mode with the
   configured escape binding.
 - The `gdefault` setting applies substitutions globally
   by default (no need for the `/g` flag), which is
@@ -740,26 +739,26 @@ starting point: Lazy manages plugins, basics.lua
 establishes sensible defaults, and Nvim-R connects the
 editor to an interactive R console. The modular
 structure means each component can be modified
-independently as your workflow evolves.
+independently as the workflow evolves.
 
-Main takeaways:
+In conclusion, four points merit emphasis. First,
+Neovim's Lua-based configuration is readable,
+version-controllable, and modular, which makes it
+practical to maintain across machines. Second, the
+Lazy plugin manager provides reproducible plugin
+states through its lock file, enabling consistent
+environments after cloning. Third, Nvim-R transforms
+Neovim into a capable R IDE with single-keystroke
+code execution and object inspection. Fourth,
+investing time in key mappings and snippets yields
+compounding productivity gains across every editing
+session.
 
-- Neovim's Lua-based configuration is readable,
-  version-controllable, and modular.
-- The Lazy plugin manager provides reproducible
-  plugin states through its lock file.
-- Nvim-R transforms Neovim into a capable R IDE with
-  single-keystroke code execution and object
-  inspection.
-- Investing time in key mappings and snippets yields
-  compounding productivity gains across every editing
-  session.
-
-If you are considering the switch, start with a minimal
-configuration and add plugins gradually. The Neovim
-ecosystem is large, and trying to configure everything
-at once is overwhelming. Let your actual workflow
-dictate what you add next.
+Anyone considering the switch should start with a
+minimal configuration and add plugins gradually. The
+Neovim ecosystem is large, and configuring everything
+at once is overwhelming. Actual workflow demands
+should dictate what to add next.
 
 # See Also
 
@@ -767,11 +766,11 @@ dictate what you add next.
 
 - [Configuring the Command Line for Data Science
   Development](/posts/01-configtermzsh/configtermzsh/analysis/report/index.qmd)
-  --- terminal and Zsh setup that complements this
-  Neovim configuration
+  (terminal and Zsh setup that complements this
+  Neovim configuration)
 - [Setting Up a GitHub Dotfiles
   Repository](/posts/24-setupdotfilesongithub/setupdotfilesongithub/analysis/report/index.qmd)
-  --- version control for your configuration files
+  (version control for configuration files)
 
 **Key resources:**
 
@@ -798,18 +797,18 @@ brew list --versions neovim
 
 **Configuration files described in this post:**
 
-- `~/.config/nvim/init.lua` --- Entry point, leader
+- `~/.config/nvim/init.lua`: Entry point, leader
   keys, module loading
-- `~/.config/nvim/lua/basics.lua` --- Core settings
+- `~/.config/nvim/lua/basics.lua`: Core settings
   and key mappings
-- `~/.config/nvim/lua/nvim-R-config.lua` --- R
+- `~/.config/nvim/lua/nvim-R-config.lua`: R
   development configuration
-- `~/.config/nvim/lua/plugins.lua` --- Lazy plugin
+- `~/.config/nvim/lua/plugins.lua`: Lazy plugin
   specification
-- `~/.config/nvim/my_snippets/` --- UltiSnips
+- `~/.config/nvim/my_snippets/`: UltiSnips
   snippet files by language
 
-To replicate this setup, clone your dotfiles
+To replicate this setup, clone the dotfiles
 repository (or copy the files above) into
 `~/.config/nvim/`, then open Neovim. Lazy will
 automatically install all specified plugins on first
