@@ -9,7 +9,7 @@ description: >
   Neovim's modal, keyboard-centric workflow.
 image: "media/images/hero.png"
 document-type: "blog"
-draft: false
+draft: true
 execute:
   echo: true
   warning: false
@@ -99,7 +99,7 @@ to the dotfiles repository
 I am documenting my learning process here. If you spot
 errors or have better approaches, please let me know.
 
-![Settling in for editor configuration.](media/images/ambiance1.jpg){.img-fluid width=30% fig-align="center"}
+![Settling in for editor configuration.](media/images/ambiance1.png){.img-fluid width=30% fig-align="center"}
 
 *The Neovim project logo. Neovim extends Vim with Lua
 scripting and an asynchronous architecture.*
@@ -615,7 +615,7 @@ mv ~/.config/nvim ~/.config/nvim.backup
 Neovim will start with no plugins and default settings.
 
 ![UCSD Geisel Library at
-dusk](media/images/ambiance3.jpg){.img-fluid}
+dusk](media/images/ambiance3.png){.img-fluid}
 
 *The pursuit of an efficient development environment
 parallels the broader scholarly commitment to refining
