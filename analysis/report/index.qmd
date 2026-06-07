@@ -9,7 +9,7 @@ description: >
   Neovim's modal, keyboard-centric workflow.
 image: "media/images/hero.png"
 document-type: "blog"
-draft: true
+draft: false
 execute:
   echo: true
   warning: false
