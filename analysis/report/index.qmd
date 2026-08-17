@@ -14,10 +14,6 @@ execute:
   echo: true
   warning: false
   message: false
-format:
-  html:
-    code-fold: false
-    code-tools: false
 cluster: workflow-construct
 cluster-order: 5
 ---
