@@ -48,7 +48,7 @@ Neovim configurations.
 
 More formally, we document the Editor layer (Layer 5)
 of the Workflow Construct described in
-[post 52](/posts/52-workflow-construct/). Neovim is the choice
+[A Workflow Construct for the Modern Data Scientist](../wf-construct-overview-anchor/). Neovim is the choice
 of editor at this layer; the layer is substitutable (with Vim,
 VS Code, RStudio, or a graphical IDE), but the contract the
 layer holds, modal scriptable text manipulation that behaves
@@ -56,7 +56,7 @@ identically locally and over SSH, is what the higher layers
 (Vim plugins, snippets, REPL integration) all assume. The
 configuration documented here is the editor-layer counterpart
 to the dotfiles repository
-([post 24](/posts/24-setupdotfilesongithub/)).
+([Multi-Laptop macOS Bootstrap](../wf-multi-laptop-dotfiles-bootstrap/)).
 
 ## Motivations
 
@@ -759,12 +759,12 @@ should dictate what to add next.
 
 **Related posts:**
 
-- [Configuring the Command Line for Data Science
-  Development](/posts/01-configtermzsh/configtermzsh/analysis/report/index.qmd)
+- [Unix Command-Line Workspace Setup for Data Science
+  Development](../wf-unix-workspace-config/)
   (terminal and Zsh setup that complements this
   Neovim configuration)
-- [Setting Up a GitHub Dotfiles
-  Repository](/posts/24-setupdotfilesongithub/setupdotfilesongithub/analysis/report/index.qmd)
+- [Multi-Laptop macOS
+  Bootstrap](../wf-multi-laptop-dotfiles-bootstrap/)
   (version control for configuration files)
 
 **Key resources:**
