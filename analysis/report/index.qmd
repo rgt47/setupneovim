@@ -15,6 +15,57 @@ cluster: workflow-construct
 cluster-order: 5
 ---
 
+<!-- ============================================================================
+AUTHOR PROVIDES — concrete inputs the blogger must supply
+
+YAML FRONT MATTER
+  [x] title           — filled in
+  [x] date            — 2026-02-11
+  [x] categories      — neovim, vim, r, python
+  [x] description     — filled in
+  [x] image           — media/images/hero.png (hero.jpg also present in
+                         media/images/; confirm which is the final asset
+                         before publishing)
+  [ ] draft: false    — still draft: true
+
+NARRATIVE INPUTS
+  [x] Hook sentence   — 'I did not really know how much...'
+  [x] Motivations     — 6 bullets
+  [x] Objectives      — 4 numbered goals
+  [x] What is Neovim? — definition + modal-editing explanation + example
+  [x] Directory structure, plugin management, key mappings sections
+  [x] Things to Watch Out For — 5 gotchas
+  [x] Lessons Learnt  — conceptual / technical / gotchas
+  [x] Limitations     — 6 bullets
+  [x] Opportunities   — 6 numbered next-step extensions
+  [x] Wrapping Up     — conclusion + main takeaways
+  [x] See Also        — related posts + key resources
+
+CONFIGURATION DELIVERABLES
+  [ ] No analysis/configs/ directory exists for this post; init.lua,
+      basics.lua, nvim-R-config.lua, and plugins.lua are shown inline in
+      the prose only, not committed as separate reproducible files in
+      this compendium.
+
+VERSION MATRIX
+  [ ] OS + version tested
+  [ ] Tool versions pinned (Neovim, Lazy, Nvim-R, plugin set)
+  [ ] Date of last verification
+
+IMAGES (4 total: hero + 3 ambiance, all in media/images/)
+  [x] Hero image (80% width) — present
+  [x] Ambiance image 1 (after Objectives) — present
+  [x] Ambiance image 2 (after key mappings) — present
+  [x] Ambiance image 3 (before Lessons Learnt) — present
+  [ ] media/images/README.md updated — attributes hero.jpg only;
+      ambiance1/2/3 are undocumented, and the file's 'placeholder coffee'
+      section describes images that do not exist in this directory
+
+CONTACT & METADATA
+  [x] Author name in YAML matches site author
+  [x] Social links in Let's Connect present
+============================================================================ -->
+
 ![Neovim logo and editor theme in a
 terminal](media/images/hero.png){.img-fluid width=80% fig-align="center"}
 
@@ -41,8 +92,10 @@ manuscripts.
 We describe a practical Neovim configuration for data
 science development on macOS. The setup covers plugin
 management with Lazy, core editor settings, R
-integration through Nvim-R, and a set of key mappings
-that streamline the edit-run-inspect cycle. An appendix
+integration through Nvim-R, LaTeX compilation through
+vimtex, and a set of key mappings that streamline the
+edit-run-inspect cycle. An appendix covers dynamic,
+Python-interpolated UltiSnips snippets; a second
 addresses Ubuntu adjustments and working with multiple
 Neovim configurations.
 
@@ -478,6 +531,142 @@ object inspection: `<space>i` for dimensions, `<space>h`
 for head, `<space>p` for print. This tight coupling
 between editor and REPL is what makes Nvim-R
 particularly effective for interactive data analysis.
+Nvim-R's `RAction()` calls are the Neovim-native
+equivalent of the `term_sendkeys()`-based object
+inspection bindings that a classic-Vim configuration
+would need to write by hand; because Nvim-R already
+provides this, no separate ftplugin file is needed here.
+
+# LaTeX with vimtex
+
+The plugin list above already includes `lervag/vimtex`,
+which handles LaTeX compilation and forward/inverse
+search. Two options are worth setting explicitly:
+
+```lua
+vim.cmd([[
+let g:vimtex_complete_close_braces = 1
+let g:vimtex_quickfix_mode = 0
+]])
+```
+
+`vimtex_complete_close_braces` auto-closes braces after
+completing a LaTeX command; `vimtex_quickfix_mode = 0`
+keeps compilation errors out of the quickfix window,
+which is less disruptive during an edit-compile-review
+cycle than having the window steal focus on every
+compile.
+
+# Appendix: Dynamic Snippets with UltiSnips
+
+The plugin list above already includes `SirVer/ultisnips`
+(configured with `g:UltiSnipsExpandTrigger="<tab>"` in
+`basics.lua`), so this appendix documents UltiSnips
+directly rather than through a separate Vim-only
+configuration. Snippet files live under
+`~/.config/nvim/my_snippets/`, organised by language, per
+the directory structure shown earlier.
+
+## Static Snippets
+
+A snippet definition consists of a trigger keyword, one
+or more tabstops (`$1`, `$2`, ...) where the cursor lands
+after expansion, and the body text between those
+tabstops. A minimal R Markdown YAML header snippet:
+
+```
+snippet rheader "R Markdown YAML header"
+---
+title: "$1"
+author: "${2:R.G. Thomas}"
+date: today
+output:
+  pdf_document:
+    keep_tex: true
+---
+$0
+endsnippet
+```
+
+Typing `rheader` and pressing `Tab` (the configured
+expand trigger) expands the template; `Tab` again jumps
+between tabstops.
+
+## Python-Interpolated Dynamic Snippets
+
+Static snippets cover predictable boilerplate. A separate
+class of problem requires the expansion content to be
+computed at the moment of triggering, based on what the
+user has already typed. UltiSnips supports this through a
+`!p` (Python) interpolation block. Inside the block, the
+special variable `snip.rv` holds the text UltiSnips will
+insert; `t[1]`, `t[2]`, etc. read the current value of
+each tabstop as a string.
+
+A concrete motivating problem, from a
+[Stack Overflow question](https://stackoverflow.com/questions/78636197):
+generate a variable number of chord placeholders, where
+the count depends on a number typed into the first
+tabstop.
+
+```
+snippet chords "Generate chord placeholders"
+`!p
+def make_chords(num_reps):
+    text = ""
+    for i in range(num_reps):
+        text += "< > "
+    return text
+
+snip.rv = make_chords(int(t[1]))
+`
+endsnippet
+```
+
+A simpler but frequently useful pattern inserts the
+current date at expansion time:
+
+```
+snippet today "Insert today's date"
+`!p
+import datetime
+snip.rv = datetime.date.today().isoformat()
+`
+endsnippet
+```
+
+And a numbered list of a length specified by the user:
+
+```
+snippet numlist "Numbered list of N items"
+${1:5}
+`!p
+n = int(t[1])
+snip.rv = "\n".join(
+    f"{i+1}. " for i in range(n)
+)
+`
+endsnippet
+```
+
+**Debugging.** When a Python interpolation block fails
+silently, open Neovim's message log with `:messages`
+immediately after the failed expansion; UltiSnips catches
+Python exceptions and reports them there rather than
+raising visibly. Confirm Python 3 support with
+`:checkhealth provider` (the Neovim equivalent of Vim's
+`:echo has('python3')`); UltiSnips requires it, and the
+`!p` mechanism fails silently without it. `:call
+UltiSnips#RefreshSnippets()` and `:UltiSnipsEdit` reload
+and open the snippet file for the current filetype,
+respectively.
+
+Python code inside a snippet runs synchronously in a
+shared interpreter state: an expensive computation blocks
+the editor for its duration, and variables defined in one
+snippet's `!p` block persist into later expansions in the
+same session, which can produce surprising results if
+variable names collide across snippets.
 
 # Ubuntu Tweaks and Multiple Configurations
 
@@ -775,6 +964,11 @@ should dictate what to add next.
 - [Neovim Lua Guide](https://neovim.io/doc/user/lua-guide.html)
 - [Switching Neovim Configs](https://michaeluloth.com/neovim-switch-configs/)
   by Michael Uloth
+- [vimtex documentation](https://github.com/lervag/vimtex)
+- [UltiSnips repository](https://github.com/SirVer/ultisnips)
+- [UltiSnips full documentation](https://github.com/SirVer/ultisnips/blob/master/doc/UltiSnips.txt)
+- [UltiSnips Python interpolation (Vimcasts)](http://vimcasts.org/episodes/ultisnips-python-interpolation/)
+- [Stack Overflow: chord placeholder snippet](https://stackoverflow.com/questions/78636197)
 
 # Reproducibility
 
@@ -829,6 +1023,52 @@ I would enjoy hearing from you if:
 - You have questions about anything in this tutorial.
 - You just want to say hello and connect.
 
+<!-- ============================================================================
+PRE-PUBLISH QA CHECKLIST: verify each item BEFORE setting draft: false
+
+[ ] YAML
+    [x] title, date, categories, description, image filled in
+    [x] document-type: 'blog'
+    [ ] draft: false
+
+[ ] Narrative complete (no [bracketed] placeholders remaining)
+    [ ] grep '\[' index.qmd returns only legitimate code/links
+
+[ ] Configuration artifacts present and tested
+    [ ] No analysis/configs/ deliverables exist; confirm whether the
+        inline init.lua/basics.lua/nvim-R-config.lua/plugins.lua blocks
+        are meant to stay narrative-only or should be committed as
+        standalone files
+
+[ ] Things to Watch Out For
+    [x] At least 5 gotchas, each with symptom and fix
+
+[ ] Visual design
+    [x] 1 hero image present
+    [x] 3 ambiance images present
+    [ ] media/images/README.md attributes every image (ambiance1/2/3
+        currently undocumented)
+
+[ ] Content quality
+    [ ] Zero emoji
+    [ ] Zero em dashes — two triple-hyphen ('---') em dashes found in
+        prose (lines ~669, ~726); replace with parentheses or commas
+    [ ] Single quotes in prose
+    [ ] 78-character line wrap throughout
+
+[ ] Reproducibility
+    [ ] Version matrix 'Last verified' field filled in — no version
+        table currently present
+    [ ] Config files committed under analysis/configs/ — none exist
+
+[ ] Render verification
+    [ ] quarto render produces clean HTML with no warnings
+    [ ] PDF renders without overflow or missing images (index.pdf exists
+        from a prior render; re-verify after any content change)
+    [ ] Hero image displays in /blog/ listing card
+    [ ] Internal links resolve
+============================================================================ -->
+
 ## Related posts in this cluster
 
 This post is part of the *Workflow Construct* series.
@@ -839,7 +1079,6 @@ Recommended reading order:
 3. Post 17: [Multi-Laptop macOS Bootstrap](../17-wf-multi-laptop-dotfiles-bootstrap/)
 4. Post 18: [Setting Up Git for Data Science Workflows](../18-wf-git-for-data-science/)
 5. **Post 19: Setting Up Neovim as a Data Science IDE** (this post)
-6. Post 20: [Extending the R-Vim Workflow with LaTeX](../20-wf-r-vim-latex-workflow/)
 7. Post 21: [Modern CLI Replacements for the Shell Layer](../21-wf-modern-cli-tools/)
 8. Post 22: [LLM-Augmented Editing for the Workflow Construct](../22-wf-claude-code-in-shell/)
 10. Post 24: [A pocket terminal with ttyd and Tailscale](../24-wf-pocket-terminal-ttyd-tailscale/)
