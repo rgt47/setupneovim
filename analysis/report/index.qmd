@@ -4,7 +4,7 @@ author: "Ronald G. Thomas"
 date: "2026-02-11"
 categories: [neovim, vim, r, python]
 description: "I did not really know how much faster code editing could be until I switched from a mouse-driven IDE to Neovim's modal, keyboard-centric workflow."
-image: "media/images/hero.png"
+image: "media/images/hero.jpg"
 document-type: "blog"
 draft: true
 execute:
@@ -67,7 +67,7 @@ CONTACT & METADATA
 ============================================================================ -->
 
 ![Neovim logo and editor theme in a
-terminal](media/images/hero.png){.img-fluid width=80% fig-align="center"}
+terminal](media/images/hero.jpg){.img-fluid width=80% fig-align="center"}
 
 *Neovim: a modern fork of Vim designed for extensibility
 through Lua.*
@@ -797,7 +797,7 @@ mv ~/.config/nvim ~/.config/nvim.backup
 Neovim will start with no plugins and default settings.
 
 ![UCSD Geisel Library at
-dusk](media/images/ambiance3.png){.img-fluid height=3.5in}
+dusk](media/images/ambiance3.jpg){.img-fluid height=3.5in}
 
 *The pursuit of an efficient development environment
 parallels the broader scholarly commitment to refining
