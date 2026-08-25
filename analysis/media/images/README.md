@@ -25,20 +25,21 @@ placeholder-coffee pool below:
 - `ambiance2.jpg`: byte-identical to a shared coffee placeholder
   (`911815aa...`) reused elsewhere on the site.
 
-Both `ambiance1.jpg` and `ambiance2.jpg` still need generation.
+**Update (2026-08-25):** `ambiance1.jpg` and `ambiance2.jpg` have
+been replaced with genuine Gemini generations (via the
+`gemini-image-generator` tool), and all four image slots for this
+post are now real:
 
-## Pending generation (2026-08-25)
+- `ambiance1.jpg`: a modular wooden toolbox with individually
+  labeled small drawers, one drawer pulled open to reveal a single
+  well-organized tool inside. Metaphor: a modular, extensible
+  configuration.
+- `ambiance2.jpg`: a pianist's hand resting on a keyboard, captured
+  mid-motion with slight blur on the fingers. Metaphor: fluent,
+  practiced keyboard-driven motion.
 
-- **Ambiance 1** (after Objectives, replacing the current Neovim
-  logo file): A modular wooden toolbox with individually labeled
-  small drawers, one drawer pulled open to reveal a single
-  well-organized tool inside, on a workbench. Soft directional
-  light, shallow depth of field, warm wood tones. Metaphor: a
-  modular, extensible configuration.
-- **Ambiance 2** (after Key Mappings): A pianist's hand resting on a
-  keyboard, captured mid-motion with slight blur on the fingers,
-  warm stage-adjacent lighting, shallow depth of field. Metaphor:
-  fluent, practiced keyboard-driven motion.
+Both processed via `magick -resize 1600x -strip -quality 85` to
+1600x873.
 
 ## Placeholder coffee images (temporary ambiance slots)
 

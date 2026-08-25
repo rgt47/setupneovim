@@ -53,13 +53,16 @@ VERSION MATRIX
   [ ] Date of last verification
 
 IMAGES (4 total: hero + 3 ambiance, all in media/images/)
-  [x] Hero image (80% width) — present
-  [x] Ambiance image 1 (after Objectives) — present
-  [x] Ambiance image 2 (after key mappings) — present
-  [x] Ambiance image 3 (before Lessons Learnt) — present
-  [ ] media/images/README.md updated — attributes hero.jpg only;
-      ambiance1/2/3 are undocumented, and the file's 'placeholder coffee'
-      section describes images that do not exist in this directory
+  [x] Hero image (80% width) — genuine (mechanical keyboard),
+      wired to hero.jpg 2026-08-25
+  [x] Ambiance image 1 (after Objectives) — done (Gemini/Imagen 3,
+      2026-08-25): modular wooden toolbox (was the Neovim logo image)
+  [x] Ambiance image 2 (after key mappings) — done (Gemini/Imagen 3,
+      2026-08-25): pianist's hand on a keyboard (was a shared
+      coffee placeholder)
+  [x] Ambiance image 3 (before Lessons Learnt) — genuine (UCSD
+      Geisel Library), wired to ambiance3.jpg 2026-08-25
+  [x] media/images/README.md updated
 
 CONTACT & METADATA
   [x] Author name in YAML matches site author
@@ -145,7 +148,9 @@ to the dotfiles repository
 I am documenting my learning process here. If you spot
 errors or have better approaches, please let me know.
 
-![Settling in for editor configuration.](media/images/ambiance1.png){.img-fluid height=3.5in}
+![A modular wooden toolbox with individually labeled small
+drawers, one drawer pulled open to reveal a single well-organized
+tool inside, on a workbench.](media/images/ambiance1.jpg){.img-fluid height=3.5in}
 
 *The Neovim project logo. Neovim extends Vim with Lua
 scripting and an asynchronous architecture.*
@@ -463,8 +468,8 @@ actions). Swapping it to the semicolon key eliminates
 the need to hold Shift, saving thousands of keystrokes
 over time.
 
-![Soft mood lighting over a coding
-workspace](media/images/ambiance2.png){.img-fluid height=3.5in}
+![A pianist's hand resting on a keyboard, captured mid-motion with
+slight blur on the fingers.](media/images/ambiance2.jpg){.img-fluid height=3.5in}
 
 *A well-configured development environment reduces
 cognitive overhead and allows sustained focus on the
@@ -1043,11 +1048,10 @@ PRE-PUBLISH QA CHECKLIST: verify each item BEFORE setting draft: false
 [ ] Things to Watch Out For
     [x] At least 5 gotchas, each with symptom and fix
 
-[ ] Visual design
-    [x] 1 hero image present
-    [x] 3 ambiance images present
-    [ ] media/images/README.md attributes every image (ambiance1/2/3
-        currently undocumented)
+[x] Visual design
+    [x] 1 hero image present, genuine
+    [x] 3 ambiance images present, all genuine as of 2026-08-25
+    [x] media/images/README.md attributes every image
 
 [ ] Content quality
     [ ] Zero emoji
