@@ -10,6 +10,36 @@
   on the keyboard. Style: editorial technology photography, 50mm lens,
   photographic realism, no text, no recognisable logos, no people.'
 
+## Status (2026-08-25)
+
+Checked via `md5` and visual inspection against the shared
+placeholder-coffee pool below:
+
+- `hero.jpg`: genuine (mechanical keyboard and monitor, matches the
+  documented prompt above). Now wired into `index.qmd` (was pointing
+  at `hero.png`).
+- `ambiance3.jpg`: genuine (UCSD Geisel Library, the site's recurring
+  "scholarly setting" motif). Now wired into `index.qmd`.
+- `ambiance1.jpg`: this is the Neovim logo image (matches
+  `neovim-logo.png`), not a real ambiance photo.
+- `ambiance2.jpg`: byte-identical to a shared coffee placeholder
+  (`911815aa...`) reused elsewhere on the site.
+
+Both `ambiance1.jpg` and `ambiance2.jpg` still need generation.
+
+## Pending generation (2026-08-25)
+
+- **Ambiance 1** (after Objectives, replacing the current Neovim
+  logo file): A modular wooden toolbox with individually labeled
+  small drawers, one drawer pulled open to reveal a single
+  well-organized tool inside, on a workbench. Soft directional
+  light, shallow depth of field, warm wood tones. Metaphor: a
+  modular, extensible configuration.
+- **Ambiance 2** (after Key Mappings): A pianist's hand resting on a
+  keyboard, captured mid-motion with slight blur on the fingers,
+  warm stage-adjacent lighting, shallow depth of field. Metaphor:
+  fluent, practiced keyboard-driven motion.
+
 ## Placeholder coffee images (temporary ambiance slots)
 
 These images are shared placeholders used across all posts until replaced
