@@ -2,8 +2,11 @@
 title: "Setting Up Neovim as a Data Science IDE"
 author: "Ronald G. Thomas"
 date: "2026-02-11"
+date-modified: "2026-08-28"
 categories: [neovim, vim, r, python]
-description: "I did not really know how much faster code editing could be until I switched from a mouse-driven IDE to Neovim's modal, keyboard-centric workflow."
+description: "Neovim's plugin ecosystem moves fast. This is a ground-up
+  rewrite of the original setup, built around native LSP, LuaSnip, and
+  R.nvim rather than the plugins that carried the workflow two years ago."
 image: "media/images/hero.jpg"
 document-type: "blog"
 draft: true
@@ -19,50 +22,58 @@ cluster-order: 5
 AUTHOR PROVIDES — concrete inputs the blogger must supply
 
 YAML FRONT MATTER
-  [x] title           — filled in
-  [x] date            — 2026-02-11
-  [x] categories      — neovim, vim, r, python
-  [x] description     — filled in
-  [x] image           — media/images/hero.png (hero.jpg also present in
-                         media/images/; confirm which is the final asset
-                         before publishing)
+  [x] title           — unchanged
+  [x] date             — original publish date kept
+  [x] date-modified   — 2026-08-28 (full rewrite)
+  [x] categories, description, image — filled in
   [ ] draft: false    — still draft: true
 
 NARRATIVE INPUTS
-  [x] Hook sentence   — 'I did not really know how much...'
-  [x] Motivations     — 6 bullets
-  [x] Objectives      — 4 numbered goals
-  [x] What is Neovim? — definition + modal-editing explanation + example
-  [x] Directory structure, plugin management, key mappings sections
-  [x] Things to Watch Out For — 5 gotchas
-  [x] Lessons Learnt  — conceptual / technical / gotchas
-  [x] Limitations     — 6 bullets
-  [x] Opportunities   — 6 numbered next-step extensions
-  [x] Wrapping Up     — conclusion + main takeaways
-  [x] See Also        — related posts + key resources
+  [x] Hook / motivations / objectives rewritten for the 2026 stack
+  [x] Directory structure, plugin list, key mappings rewritten
+  [x] Native LSP section (new)
+  [x] Completion (nvim-cmp) section (new)
+  [x] LuaSnip section (replaces UltiSnips appendix)
+  [x] R.nvim section (replaces Nvim-R)
+  [x] Quarto editing section (new)
+  [ ] Things to Watch Out For — reviewed against 2026 stack
+  [ ] Lessons Learnt / Limitations / Opportunities — reviewed
+  [ ] Wrapping Up / See Also — reviewed
+
+VERIFICATION PERFORMED (this rewrite, 2026-08-28)
+  [x] Built and ran an isolated test config (XDG_* override, bypassing
+      the machine's global VIMINIT) against Neovim 0.12.4 with lazy.nvim,
+      R.nvim, nvim-treesitter, nvim-lspconfig, nvim-cmp + LuaSnip,
+      quarto-nvim + otter.nvim, and telescope.nvim. Config bootstrapped
+      and loaded with zero errors.
+  [x] Re-ran the same bootstrap and load test after the host's Neovim
+      was updated to 0.12.5: plugin sync and config load both clean,
+      zero errors. Version matrix below now reflects 0.12.5 as the
+      actually-verified version, not an inferred carry-forward.
+  [x] R.nvim default keymaps read directly from
+      R-nvim/R.nvim `lua/r/maps.lua` source in the installed plugin,
+      not from documentation summaries.
+  [x] plenary.nvim confirmed archived-in-practice: last commit
+      2026-04-10 (the 'archived Q2 2026' notice itself); no commits
+      since. Telescope's installed README still lists it as a hard
+      dependency with no migration notice.
+  [ ] GUI front-end (Neovide vs neovim-qt) — no strong 2026 consensus
+      found; kept neovim-qt for continuity, Neovide mentioned as the
+      GPU-accelerated alternative. Not independently tested.
+  [ ] R.nvim's `nvimcom` R package install step not tested end to end
+      (no R interpreter exercised in the verification session).
 
 CONFIGURATION DELIVERABLES
-  [ ] No analysis/configs/ directory exists for this post; init.lua,
-      basics.lua, nvim-R-config.lua, and plugins.lua are shown inline in
-      the prose only, not committed as separate reproducible files in
-      this compendium.
+  [ ] No analysis/configs/ directory exists for this post; init.lua and
+      the lua/ modules are shown inline in the prose only, not committed
+      as separate reproducible files in this compendium.
 
-VERSION MATRIX
-  [ ] OS + version tested
-  [ ] Tool versions pinned (Neovim, Lazy, Nvim-R, plugin set)
-  [ ] Date of last verification
-
-IMAGES (4 total: hero + 3 ambiance, all in media/images/)
-  [x] Hero image (80% width) — genuine (mechanical keyboard),
-      wired to hero.jpg 2026-08-25
-  [x] Ambiance image 1 (after Objectives) — done (Gemini/Imagen 3,
-      2026-08-25): modular wooden toolbox (was the Neovim logo image)
-  [x] Ambiance image 2 (after key mappings) — done (Gemini/Imagen 3,
-      2026-08-25): pianist's hand on a keyboard (was a shared
-      coffee placeholder)
-  [x] Ambiance image 3 (before Lessons Learnt) — genuine (UCSD
-      Geisel Library), wired to ambiance3.jpg 2026-08-25
-  [x] media/images/README.md updated
+IMAGES (4 total: hero + 3 ambiance, all in media/images/, unchanged
+from the original post — none of the visual assets are stack-specific)
+  [x] Hero image (80% width)
+  [x] Ambiance image 1 (after Objectives)
+  [x] Ambiance image 2 (after key mappings)
+  [x] Ambiance image 3 (before Lessons Learnt)
 
 CONTACT & METADATA
   [x] Author name in YAML matches site author
@@ -77,12 +88,22 @@ through Lua.*
 
 # Introduction
 
-I did not really know how much a keyboard-centric text
-editor could reshape the way I write code until I committed
-to learning Neovim. For years I relied on conventional
-mouse-driven editors, accepting their speed as a given. The
-transition was not immediate, but the cumulative effect on
-daily productivity was substantial.
+This post is a ground-up rewrite, not an update. The original
+version of this guide, published in early 2026, documented a
+working Neovim configuration built around Nvim-R, UltiSnips,
+and `nvim-lspconfig`'s `.setup{}` pattern. All three have since
+been superseded: Nvim-R was archived in 2023 and its plugin has
+now genuinely bit-rotted; UltiSnips' Python-interpreter
+dependency is a maintenance burden LuaSnip does not carry;
+and Neovim 0.11 and 0.12 moved LSP configuration into the
+editor core, leaving `nvim-lspconfig`'s old `.setup{}` API a
+compatibility shim rather than the recommended path. Rather
+than patch those sections in place, this rewrite starts over
+with the plugin set and native APIs current as of Neovim
+0.12.5, the latest stable release as of this writing. The
+configuration was built and verified against 0.12.4, then
+re-verified against 0.12.5 after the test machine was
+updated; both bootstrapped and loaded with zero errors.
 
 Neovim is a fork of Vim that retains the modal editing
 philosophy while adding first-class Lua scripting, an
@@ -93,14 +114,13 @@ between writing code, inspecting output, and editing
 manuscripts.
 
 We describe a practical Neovim configuration for data
-science development on macOS. The setup covers plugin
-management with Lazy, core editor settings, R
-integration through Nvim-R, LaTeX compilation through
-vimtex, and a set of key mappings that streamline the
-edit-run-inspect cycle. An appendix covers dynamic,
-Python-interpolated UltiSnips snippets; a second
-addresses Ubuntu adjustments and working with multiple
-Neovim configurations.
+science development on macOS, built entirely in Lua: plugin
+management with Lazy, native LSP configuration through
+`vim.lsp.config()` and `vim.lsp.enable()`, completion through
+nvim-cmp, snippets through LuaSnip, R integration through
+R.nvim, LaTeX compilation through vimtex, and Quarto document
+editing through quarto-nvim. A closing appendix covers Ubuntu
+adjustments and working with multiple Neovim configurations.
 
 More formally, we document the Editor layer (Layer 5)
 of the Workflow Construct described in
@@ -114,36 +134,56 @@ configuration documented here is the editor-layer counterpart
 to the dotfiles repository
 ([Multi-Laptop macOS Bootstrap](../wf-multi-laptop-dotfiles-bootstrap/)).
 
+::: {.callout-note}
+Every configuration snippet in this post was built and run
+against a real Neovim instance in an isolated, throwaway
+configuration directory before being written down here, not
+copied from documentation and left untested. This was done
+twice: first against 0.12.4, then again against 0.12.5 after
+the test machine's Neovim was updated, with identical clean
+results both times. Where
+a claim could not be verified this way (the `nvimcom` R
+package's install step, for instance, which requires a live R
+session), that is noted explicitly rather than presented as
+confirmed.
+:::
+
 ## Motivations
 
-- I was spending too much time reaching for the mouse
-  during analysis sessions and wanted a purely
-  keyboard-driven workflow.
-- My existing IDE felt sluggish when editing large R
-  scripts and Quarto documents; Neovim starts
-  instantaneously and never lags.
-- I needed a single editor that could handle R, Python,
-  Julia, and LaTeX without switching tools.
-- The Nvim-R plugin offered a tighter REPL integration
-  than what I had experienced in other editors.
-- I wanted my entire editor configuration stored in
-  version-controlled text files that I could replicate
-  on any machine.
-- Learning Lua as a configuration language felt like a
-  worthwhile investment given its growing adoption in the
-  Neovim ecosystem.
+- The original configuration's centerpiece, Nvim-R, is
+  archived and its replacement story needed to be told
+  properly rather than bolted on as a callout.
+- Native LSP support removed the reason to depend on
+  `nvim-lspconfig`'s old setup pattern, and a rewrite
+  gave the chance to teach the current API instead of an
+  API in the process of being deprecated.
+- UltiSnips' Python-interpreter requirement had already
+  surfaced as a documented gotcha in the previous version
+  of this post; LuaSnip removes the dependency entirely.
+- Quarto has become central to this blog's own publishing
+  workflow, and the original post never covered `.qmd`
+  editing directly, an omission worth fixing in a rewrite
+  rather than leaving as an appendix.
+- I wanted to verify claims empirically this time rather
+  than trust that a two-year-old configuration still
+  reflects current plugin defaults.
 
 ## Objectives
 
 1. Install Neovim and set up convenience shell aliases
    for terminal and GUI modes.
 2. Build a modular Lua configuration with a clear
-   directory hierarchy under `~/.config/nvim`.
-3. Install and configure essential plugins for data
-   science work using the Lazy plugin manager.
-4. Configure Nvim-R for interactive R development with
-   custom key mappings for sending code, inspecting
-   objects, and rendering documents.
+   directory hierarchy under `~/.config/nvim`, written
+   entirely in native Lua with no `vim.cmd([[...]])`
+   Vimscript blocks.
+3. Configure native LSP (`vim.lsp.config()` /
+   `vim.lsp.enable()`), completion (nvim-cmp), and
+   snippets (LuaSnip) as the foundation every
+   language-specific integration builds on.
+4. Configure R.nvim for interactive R development and
+   quarto-nvim for Quarto document editing, with custom
+   key mappings for sending code, inspecting objects, and
+   rendering documents.
 
 I am documenting my learning process here. If you spot
 errors or have better approaches, please let me know.
@@ -152,14 +192,17 @@ errors or have better approaches, please let me know.
 drawers, one drawer pulled open to reveal a single well-organized
 tool inside, on a workbench.](media/images/ambiance1.jpg){.img-fluid height=3.5in}
 
-*The Neovim project logo. Neovim extends Vim with Lua
-scripting and an asynchronous architecture.*
+*A rewrite is also an inventory: deciding what still earns
+its place in the toolbox and what has been quietly
+superseded.*
 
 # Prerequisites and Setup
 
 This guide assumes a macOS environment with Homebrew
-installed. The simplest approach is to install both
-the terminal and GUI versions of Neovim:
+installed and Neovim 0.11 or later (0.12 is assumed
+throughout for the native LSP and built-in treesitter
+features; see the callouts in each section for what
+changes on 0.11).
 
 ```sh
 brew install neovim neovim-qt
@@ -172,8 +215,13 @@ alias ng="nvim-qt"
 alias nt="nvim"
 ```
 
-The mnemonic is straightforward: `nt` for terminal,
-`ng` for GUI. Ubuntu Linux users should see the
+The mnemonic is straightforward: `nt` for terminal, `ng`
+for GUI. `neovim-qt` remains a reasonable default GUI
+front end; `Neovide`, a GPU-accelerated alternative with
+smooth-scroll and cursor animation, has gained adoption
+since the original post but was not independently tested
+for this rewrite, so it is mentioned here rather than
+substituted in. Ubuntu Linux users should see the
 appendix at the end of this post for platform-specific
 adjustments.
 
@@ -187,11 +235,12 @@ though it helps considerably.
 
 Neovim is a modern reimplementation of Vim, the
 ubiquitous Unix text editor. Where Vim relies on its
-own scripting language (Vimscript), Neovim adds
-first-class support for Lua, a lightweight and fast
-scripting language. This means configuration files are
-written in a language that is easier to read, debug,
-and extend than traditional Vimscript.
+own scripting language (Vimscript), Neovim treats Lua
+as a first-class configuration and scripting language,
+and, as of the 0.11 and 0.12 releases, extends that
+native surface into LSP configuration, insert-mode
+autocompletion, and treesitter highlighting that used to
+require external plugins.
 
 The core idea behind modal editing is that the keyboard
 serves different purposes depending on the current mode.
@@ -212,7 +261,8 @@ files under version control.
 The standard location for Neovim configuration files on
 Unix-like systems is `~/.config/nvim`. The main entry
 point is either `init.vim` (Vimscript) or `init.lua`
-(Lua). In this post we use Lua exclusively.
+(Lua). In this post we use Lua exclusively, with no
+embedded Vimscript blocks anywhere in the configuration.
 
 Below is the file hierarchy we construct. All the
 code in the `lua` subdirectory could be bundled into
@@ -226,26 +276,19 @@ files is clearer and easier to maintain.
 |-- lazy-lock.json
 |-- lua
 |   |-- basics.lua
+|   |-- lsp-config.lua
+|   |-- cmp-config.lua
+|   |-- luasnip-config.lua
+|   |-- r-config.lua
+|   |-- quarto-config.lua
 |   |-- leap-config.lua
-|   |-- nvim-R-config.lua
-|   |-- nvim-cmp-config.lua
 |   |-- nvim-telescope-config.lua
-|   |-- nvim-tree-config.lua
-|   `-- treesitter-config.lua
-|-- my_snippets
-|   |-- all.snippets
-|   |-- tex
-|   |-- R
-|   |-- python
-|   |-- julia
-|   |-- giles.tex.snipppets
-|   |-- mail.snippets
-|   |-- r.snippets
-|   |-- rmd.snippets
-|   |-- snippets.snippets
-|   |-- tex.snippets
-|   |-- text.snippets
-|   `-- txt.snippets
+|   `-- nvim-tree-config.lua
+|-- snippets
+|   |-- all.lua
+|   |-- r.lua
+|   |-- python.lua
+|   `-- tex.lua
 |-- spell
 |   |-- en.utf-8.add
 |   `-- en.utf-8.add.spl
@@ -253,17 +296,23 @@ files is clearer and easier to maintain.
 
 Each `.lua` file under the `lua/` directory is loaded
 by name from `init.lua` using Lua's `require()`
-function. The `my_snippets/` directory holds
-UltiSnips snippet files organized by language. The
-`spell/` directory contains custom dictionary additions
-for Neovim's built-in spell checker.
+function. The `snippets/` directory holds LuaSnip
+snippet files organized by language, replacing the
+`my_snippets/` UltiSnips layout from the previous
+version of this configuration. The `spell/` directory
+contains custom dictionary additions for Neovim's
+built-in spell checker and is unchanged from before.
 
 # Plugin Management with Lazy
 
 Neovim on its own is useful but limited. Plugins extend
 its capabilities dramatically. To install plugins we
-need a plugin manager. Several exist; we use Lazy, which
-is fast, declarative, and written entirely in Lua.
+need a plugin manager. Neovim 0.12 ships an experimental
+built-in manager, `vim.pack`, but it does not yet
+support lazy-loading on events, commands, or filetypes.
+We use Lazy, which remains the more capable choice for a
+configuration this size, and is still the most widely
+documented plugin manager in the ecosystem.
 
 To install Lazy, clone its repository into Neovim's data
 directory:
@@ -288,8 +337,12 @@ vim.opt.rtp:prepend(
 )
 require('plugins')
 require('basics')
+require('lsp-config')
+require('cmp-config')
+require('luasnip-config')
+require('r-config')
+require('quarto-config')
 require('nvim-tree-config')
-require('nvim-R-config')
 require('nvim-telescope-config')
 require('leap').add_default_mappings()
 require('leap-config')
@@ -297,30 +350,45 @@ require('lualine').setup()
 ```
 
 The comma leader key and space local leader are
-personal preferences. The leader key is the prefix
-for user-defined shortcuts; keeping it on the home
-row minimizes hand movement.
+personal preferences carried over from the original
+configuration. The leader key is the prefix for
+user-defined shortcuts; keeping it on the home row
+minimizes hand movement. R.nvim's own default keymaps
+are bound under `<LocalLeader>`, so the local leader
+choice matters more directly here than it did with
+Nvim-R.
 
 # Plugin List and Descriptions
 
 The following block is the plugin specification
-passed to Lazy. Plugins are grouped by purpose: a
-minimal data science core, optional utilities, and
-Neovim-specific enhancements.
+passed to Lazy. Plugins are grouped by purpose: an
+LSP and completion core, a data science layer, and
+Neovim-specific enhancements. This list was installed
+and bootstrapped without error against both Neovim 0.12.4
+and, after the test machine was updated, 0.12.5, while
+preparing this post.
 
 ```lua
 require('lazy').setup({
-  -- minimal data science setup
-  'jalvesaq/Nvim-R',
+  -- LSP, completion, snippets
+  'neovim/nvim-lspconfig',
+  'hrsh7th/nvim-cmp',
+  'hrsh7th/cmp-nvim-lsp',
+  'hrsh7th/cmp-buffer',
+  'hrsh7th/cmp-path',
+  'L3MON4D3/LuaSnip',
+  'saadparwaiz1/cmp_luasnip',
+  -- data science core
+  'R-nvim/R.nvim',
+  'quarto-dev/quarto-nvim',
+  'jmbuhr/otter.nvim',
   'lervag/vimtex',
-  'SirVer/ultisnips',
   'jalvesaq/vimcmdline',
   -- optional utilities
   "nvim-lualine/lualine.nvim",
   "bluz71/vim-moonfly-colors",
   'junegunn/vim-peekaboo',
   'tpope/vim-commentary',
-  'francoiscabrol/ranger.vim',
   'machakann/vim-highlightedyank',
   'tpope/vim-surround',
   'ggandor/leap.nvim',
@@ -330,82 +398,88 @@ require('lazy').setup({
   'nvim-tree/nvim-tree.lua',
   'nvim-telescope/telescope.nvim',
   'nvim-treesitter/nvim-treesitter',
-  'neovim/nvim-lspconfig',
 })
 ```
 
-**Minimal data science setup.** Nvim-R provides a
-full R development environment with REPL integration.
-Vimtex handles LaTeX editing and compilation.
-UltiSnips manages code snippets for rapid boilerplate
-insertion. Vimcmdline extends REPL support to Python
-and Julia.
+**LSP, completion, snippets.** `nvim-lspconfig` is kept,
+but only for its bundled `lsp/*.lua` server definitions
+(`r_language_server`, `pyright`), not for its old
+`.setup{}` API. nvim-cmp remains the stable, mature
+completion engine; `blink.cmp` is a faster emerging
+alternative with a growing user base but still ships
+breaking changes between minor versions, so nvim-cmp is
+the safer choice for a configuration meant to stay
+correct without frequent maintenance. LuaSnip replaces
+UltiSnips as the snippet engine, removing the Python
+provider dependency documented as a gotcha in the
+previous version of this post.
+
+**Data science core.** R.nvim replaces the archived
+Nvim-R as the R development environment; see the
+dedicated section below. quarto-nvim and its dependency
+otter.nvim add Quarto document support, new to this
+post. Vimtex handles LaTeX editing and compilation.
+Vimcmdline extends REPL support to Python and Julia.
 
 **Optional utilities.** Lualine provides a status bar.
 Moonfly-colors is a dark color scheme optimized for
 long editing sessions. Peekaboo previews register
-contents. Commentary toggles comments. Ranger
-integrates a file manager. Highlighted-yank provides
-visual feedback on yanked text. Surround manipulates
-paired delimiters. Leap enables rapid cursor movement
-by two-character search.
+contents. Commentary toggles comments. Highlighted-yank
+provides visual feedback on yanked text. Surround
+manipulates paired delimiters. Leap enables rapid cursor
+movement by two-character search. (`ranger.vim` from the
+previous configuration is dropped here in favor of
+nvim-tree, which already covers the same file-browsing
+need.)
 
 **Neovim specific.** Plenary provides shared Lua
-utilities. Web-devicons and nvim-tree deliver a file
-explorer with icons. Telescope is a fuzzy finder for
-files, buffers, and grep results. Treesitter enables
-syntax-aware highlighting and code navigation.
-Lspconfig connects to language servers for
-autocompletion and diagnostics.
+utilities that Telescope depends on; see the maintenance
+note under Fuzzy Finding below. Web-devicons and
+nvim-tree deliver a file explorer with icons. Telescope
+is a fuzzy finder for files, buffers, and grep results.
+`nvim-treesitter` is kept for textobjects and incremental
+selection, but as of Neovim 0.12, treesitter parsers and
+highlighting ship in core and no longer require the
+plugin for basic syntax highlighting.
 
 # Setup Basics
 
 The `basics.lua` file contains core editor settings
-and key mappings. These settings apply globally
-regardless of file type.
+and key mappings, written in native Lua rather than a
+`vim.cmd([[...]])` Vimscript block.
 
 ```lua
-local map = vim.keymap.set
-local opts = {noremap = true}
-vim.cmd([[
-"    paste registers into terminal
-tnoremap <expr> <C-R> \
-  '<C-\><C-N>"'.nr2char(getchar()).'pi'
-set background=dark
-colorscheme moonfly
-let $FZF_DEFAULT_COMMAND = 'rg --files --hidden'
-set completeopt=menu,menuone,noinsert,noselect
-set number relativenumber
-set textwidth=80
-set cursorline
-set clipboard=unnamed
-set iskeyword-=_
-set hlsearch
-set splitright
-set hidden
-set incsearch
-set noswapfile
-set showmatch
-set ignorecase
-set smartcase
-set gdefault
-filetype plugin on
-set encoding=utf-8
-set nobackup
-set nowritebackup
-set updatetime=300
-set signcolumn=yes
-set colorcolumn=80
-set timeoutlen=1000 ttimeoutlen=10
-let g:UltiSnipsSnippetDirectories = \
-  ['~/.config/nvim/my_snippets']
-let g:UltiSnipsExpandTrigger="<tab>"
-let g:UltiSnipsJumpForwardTrigger="<c-j>"
-let g:UltiSnipsJumpBackwardTrigger="<c-k>"
-nnoremap <leader>U \
-  <Cmd>call UltiSnips#RefreshSnippets()<CR>
-autocmd BufWinEnter,WinEnter term://* startinsert
-]])
+vim.opt.background = "dark"
+vim.cmd.colorscheme("moonfly")
+vim.opt.completeopt = { "menu", "menuone", "noinsert", "noselect" }
+vim.opt.number = true
+vim.opt.relativenumber = true
+vim.opt.textwidth = 80
+vim.opt.cursorline = true
+vim.opt.clipboard = "unnamedplus"
+vim.opt.iskeyword:remove("_")
+vim.opt.hlsearch = true
+vim.opt.splitright = true
+vim.opt.hidden = true
+vim.opt.incsearch = true
+vim.opt.swapfile = false
+vim.opt.showmatch = true
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+vim.opt.gdefault = true
+vim.opt.encoding = "utf-8"
+vim.opt.backup = false
+vim.opt.writebackup = false
+vim.opt.updatetime = 300
+vim.opt.signcolumn = "yes"
+vim.opt.colorcolumn = "80"
+vim.opt.timeoutlen = 1000
+vim.opt.ttimeoutlen = 10
+
+vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
+  pattern = "term://*",
+  command = "startinsert",
+})
 ```
 
 A few settings worth highlighting: `relativenumber`
@@ -413,39 +487,44 @@ shows line distances from the cursor, which makes
 vertical motions (e.g., `12j` to jump 12 lines down)
 intuitive. `colorcolumn=80` draws a vertical guide at
 80 characters to encourage readable line lengths.
-`clipboard=unnamed` connects Neovim's yank register to
-the system clipboard. `splitright` opens vertical splits
+`clipboard=unnamedplus` connects Neovim's yank register
+to the system clipboard (the previous configuration used
+`unnamed`; `unnamedplus` is the more portable choice
+across the `+`/`*` register split on Linux, and works
+identically on macOS). `splitright` opens vertical splits
 to the right, matching the natural left-to-right reading
 direction.
+
+::: {.callout-note}
+The old configuration's `iabb`/`UltiSnips` insert-mode
+abbreviations for `%>%` and `%in%` are dropped here in
+favor of LuaSnip snippets for the same expansions; see
+the Snippets section below.
+:::
 
 ## Key Mappings
 
 The following mappings are defined in `basics.lua`
-after the `vim.cmd` block. They use the Lua
-`vim.keymap.set` API.
+using the `vim.keymap.set` API. Most carry over
+unchanged from the previous configuration; the
+UltiSnips-specific mappings (`<leader>u`, `<leader>U`)
+are removed since LuaSnip does not use a comparable
+snippet-editing workflow.
 
 ```lua
+local map = vim.keymap.set
+local opts = { noremap = true }
+
 map('n', ':', ';', opts)
 map('n', ';', ':', opts)
-map('n', '<leader>u',
-  ':UltiSnipsEdit<cr>', opts)
-map('n', '<leader>U',
-  '<Cmd>call UltiSnips#RefreshSnippets()<cr>',
-  opts)
-map('n', '<localleader><localleader>',
-  '<C-d>', opts)
+map('n', '<localleader><localleader>', '<C-d>', opts)
 map('n', '-', '$', opts)
 map('n', '<leader>w', 'vipgq', opts)
-map('n', '<leader>v',
-  ':edit ~/.config/nvim/init.lua<cr>', opts)
-map('n', '<leader>n',
-  ':edit ~/.config/nvim/lua/basics.lua<cr>',
-  opts)
+map('n', '<leader>v', ':edit ~/.config/nvim/init.lua<cr>', opts)
+map('n', '<leader>n', ':edit ~/.config/nvim/lua/basics.lua<cr>', opts)
 map('n', '<leader>a', 'ggVG', opts)
 map('n', '<leader>t', ':tab split<cr>', opts)
-map('n', '<leader>y', ':vert sb3<cr>', opts)
-map('n', '<leader>0',
-  ':ls!<CR>:b<Space>', opts)
+map('n', '<leader>0', ':ls!<CR>:b<Space>', opts)
 map('n', '<leader><leader>', '<C-w>w', opts)
 map('n', '<leader>1', '<C-w>:b1<cr>', opts)
 map('n', '<leader>2', '<C-w>:b2<cr>', opts)
@@ -453,11 +532,9 @@ map('n', '<leader>3', '<C-w>:b3<cr>', opts)
 map('t', 'ZZ', "q('yes')<CR>", opts)
 map('t', 'ZQ', "q('no')<CR>", opts)
 map('v', '-', '$', opts)
-map('t', '<leader>0',
-  '<C-\\><C-n><C-w>:ls!<cr>:b<Space>', opts)
+map('t', '<leader>0', '<C-\\><C-n><C-w>:ls!<cr>:b<Space>', opts)
 map('t', '<Escape>', '<C-\\><C-n>', opts)
-map('t', ',,',
-  '<C-\\><C-n><C-w>w', opts)
+map('t', ',,', '<C-\\><C-n><C-w>w', opts)
 map('i', '<Esc>', '<Esc>`^', opts)
 ```
 
@@ -475,84 +552,316 @@ slight blur on the fingers.](media/images/ambiance2.jpg){.img-fluid height=3.5in
 cognitive overhead and allows sustained focus on the
 analytical task.*
 
-# R Development Setup with Nvim-R
+# Native LSP Setup
 
-The `nvim-R-config.lua` file configures the Nvim-R
-plugin, which transforms Neovim into a capable R IDE
-with REPL integration, object inspection, and document
-rendering.
+The previous version of this post had no dedicated LSP
+section: Nvim-R's own completion covered R, and nothing
+else was wired up. As of Neovim 0.11, LSP configuration
+can be done entirely through `vim.lsp.config()` and
+`vim.lsp.enable()`, without calling
+`require('lspconfig').X.setup{}` at all. `nvim-lspconfig`
+is still useful, but only as a source of `lsp/*.lua`
+server definitions that `vim.lsp.enable()` consumes.
 
 ```lua
-vim.cmd([[
-iabb <buffer> x %>%
-iabb <buffer> z %in%
-let R_auto_start = 2
-let R_enable_comment = 1
-let R_hl_term = 0
-let R_clear_line = 1
-let R_pdfviewer = "zathura"
-let R_assign = 2
-let R_latexcmd = ['xelatex']
-augroup rmarkdown
-autocmd!
-autocmd FileType rmd,r nnoremap <buffer> \
-  <CR> :call SendLineToR("down")<CR>
-autocmd FileType rmd,r nnoremap <buffer> \
-  <space>' :call RMakeRmd("default")<cr>
-autocmd FileType rmd,r noremap \
-  <space>i :call RAction("dim")<cr>
-autocmd FileType rmd,r noremap \
-  <space>h :call RAction("head")<cr>
-autocmd FileType rmd,r noremap \
-  <space>p :call RAction("print")<cr>
-autocmd FileType rmd,r noremap \
-  <space>q :call RAction("length")<cr>
-autocmd FileType rmd,r noremap \
-  <space>n :call RAction("nvim.names")<cr>
-autocmd FileType rmd,r vmap <buffer> \
-  <CR> <localleader>sd
-autocmd FileType rmd,r nmap <buffer> \
-  <space>j <localleader>gn
-autocmd FileType rmd,r nmap <buffer> \
-  <space>k <localleader>gN
-autocmd FileType rmd,r nmap <buffer> \
-  <space>l <localleader>cd
-augroup END
-]])
+vim.lsp.config('r_language_server', {
+  cmd = { 'R', '--no-echo', '-e', 'languageserver::run()' },
+  filetypes = { 'r', 'rmd', 'quarto' },
+})
+
+vim.lsp.config('pyright', {
+  cmd = { 'pyright-langserver', '--stdio' },
+  filetypes = { 'python' },
+})
+
+vim.lsp.enable({ 'r_language_server', 'pyright' })
+
+vim.diagnostic.config({
+  virtual_text = true,
+  signs = true,
+  underline = true,
+})
+
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(args)
+    local opts = { buffer = args.buf }
+    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+    vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+    vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+    vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
+  end,
+})
 ```
 
-**Key configuration choices.** `R_auto_start = 2` opens
-an R console automatically when an R file is loaded.
-`R_assign = 2` converts two underscores into the `<-`
-assignment operator. The `iabb` abbreviations expand `x`
-to `%>%` and `z` to `%in%` in insert mode, reducing
-keystrokes for common pipe and membership operators.
+This block was tested in isolation for syntax and
+loading correctness (`vim.lsp.config` and
+`vim.lsp.enable` accept and register the definitions
+without error); actually attaching to a running
+`r_language_server` process requires the R
+`languageserver` package installed and was not exercised
+end to end in this verification pass.
 
-**Custom autocmds.** The `augroup rmarkdown` block
-defines file-type-specific mappings for R and Rmd files.
-Pressing Enter sends the current line to the R console
-and moves down. Space-prefixed mappings provide quick
-object inspection: `<space>i` for dimensions, `<space>h`
-for head, `<space>p` for print. This tight coupling
-between editor and REPL is what makes Nvim-R
-particularly effective for interactive data analysis.
-Nvim-R's `RAction()` calls are the Neovim-native
-equivalent of the `term_sendkeys()`-based object
-inspection bindings that a classic-Vim configuration
-would need to write by hand; because Nvim-R already
-provides this, no separate ftplugin file is needed here.
+::: {.callout-note}
+R.nvim ships its own language server, `rnvimserver`,
+which is separate from the `languageserver` R package
+configured above. R.nvim's documentation notes that
+running both `rnvimserver` and the external
+`languageserver` package at once is discouraged; the R
+section below explains the split.
+:::
+
+**On Neovim 0.11** (rather than 0.12), the API is the
+same; the difference is mainly in how much of the LSP
+feature surface (inline completion, workspace
+diagnostics, document colors) is available without
+additional plugins. The `vim.lsp.config()` /
+`vim.lsp.enable()` pair itself works identically on
+both.
+
+# Completion with nvim-cmp
+
+nvim-cmp is configured once and shared across every
+filetype; individual language plugins (R.nvim, the LSP
+servers above) register as sources rather than each
+bringing their own completion UI.
+
+```lua
+local cmp = require('cmp')
+
+cmp.setup({
+  snippet = {
+    expand = function(args)
+      require('luasnip').lsp_expand(args.body)
+    end,
+  },
+  mapping = cmp.mapping.preset.insert({
+    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<CR>'] = cmp.mapping.confirm({ select = true }),
+    ['<Tab>'] = cmp.mapping.select_next_item(),
+    ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+  }),
+  sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    { name = 'luasnip' },
+  }, {
+    { name = 'buffer' },
+    { name = 'path' },
+  }),
+})
+```
+
+This exact block was bootstrapped and loaded without
+error in the verification session. `blink.cmp` was
+considered as an alternative: it is faster and ships
+with more batteries-included defaults, and is now the
+completion engine `kickstart.nvim` recommends, but its
+2.x line carries breaking changes relative to 1.x, and
+its LuaSnip integration changed shape between minor
+versions as recently as this year. nvim-cmp's slower
+pace of change is the better fit for a configuration
+meant to stay accurate without frequent revision; readers
+comfortable tracking a faster-moving plugin can substitute
+blink.cmp directly, since both consume the same LSP
+sources.
+
+# Snippets with LuaSnip
+
+LuaSnip replaces UltiSnips as the snippet engine in this
+rewrite, removing the Python-interpreter dependency that
+the previous version of this post documented as a source
+of silent failures. Snippet files live under
+`~/.config/nvim/snippets/`, one Lua file per language.
+
+```lua
+require('luasnip').config.set_config({
+  history = true,
+  updateevents = "TextChanged,TextChangedI",
+})
+
+require('luasnip.loaders.from_lua').load({
+  paths = "~/.config/nvim/snippets",
+})
+
+vim.keymap.set({ "i", "s" }, "<Tab>", function()
+  if require('luasnip').expand_or_jumpable() then
+    require('luasnip').expand_or_jump()
+  end
+end, { silent = true })
+
+vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
+  if require('luasnip').jumpable(-1) then
+    require('luasnip').jump(-1)
+  end
+end, { silent = true })
+```
+
+## Static Snippets
+
+A snippet definition in LuaSnip's Lua format specifies a
+trigger, one or more insert nodes (`i(1)`, `i(2)`, ...)
+where the cursor lands after expansion, and static text
+nodes (`t(...)`) between them. The equivalent of the old
+UltiSnips R Markdown YAML header snippet:
+
+```lua
+local ls = require("luasnip")
+local s = ls.snippet
+local t = ls.text_node
+local i = ls.insert_node
+
+ls.add_snippets("rmd", {
+  s("rheader", {
+    t({ "---", 'title: "' }), i(1),
+    t({ '"', 'author: "' }), i(2, "R.G. Thomas"),
+    t({ '"', "date: today", "output:", "  pdf_document:", "    keep_tex: true", "---", "" }),
+    i(0),
+  }),
+})
+```
+
+Typing `rheader` and pressing `Tab` (the configured
+expand trigger) expands the template; `Tab` again jumps
+between insert nodes.
+
+The pipe and membership-operator abbreviations that lived
+in `basics.lua` as `iabb` mappings in the previous
+configuration move here as ordinary autosnippets:
+
+```lua
+ls.add_snippets("r", {
+  s({ trig = "%>%", snippetType = "autosnippet" }, { t("%>%") }),
+  s({ trig = "%in%", snippetType = "autosnippet" }, { t("%in%") }),
+})
+```
+
+## Dynamic Snippets
+
+UltiSnips' `!p` Python interpolation blocks have a direct
+LuaSnip equivalent using `function_node`, evaluated in
+Lua rather than a separate Python interpreter, which
+removes the `:checkhealth provider` requirement that the
+previous version of this post documented as a gotcha.
+The chord-placeholder problem from the original UltiSnips
+example, translated directly:
+
+```lua
+local f = ls.function_node
+
+ls.add_snippets("all", {
+  s("chords", {
+    i(1, "1"),
+    f(function(args)
+      local n = tonumber(args[1][1]) or 0
+      local text = ""
+      for _ = 1, n do
+        text = text .. "< > "
+      end
+      return text
+    end, { 1 }),
+  }),
+})
+```
+
+A simpler pattern inserts the current date at expansion
+time:
+
+```lua
+ls.add_snippets("all", {
+  s("today", {
+    f(function()
+      return os.date("%Y-%m-%d")
+    end, {}),
+  }),
+})
+```
+
+**Debugging.** LuaSnip errors surface as ordinary Lua
+tracebacks in `:messages`, the same channel any other
+plugin error uses, rather than being caught and hidden
+the way UltiSnips caught Python exceptions. This was
+confirmed directly: a deliberately broken `function_node`
+in the verification session produced an immediate,
+visible traceback on expansion attempt.
+
+# R Development Setup with R.nvim
+
+R.nvim is the actively maintained, Neovim-native
+successor in this configuration, replacing the archived
+Nvim-R that the original version of this post
+documented. It bundles two components beyond the Lua
+plugin itself: `rnvimserver`, a C-based language server
+communicating over TCP, and `nvimcom`, an R package that
+connects to `rnvimserver` to provide object-browser
+functionality and completions sourced from the live R
+environment. Because R.nvim installs a git submodule,
+the clone step differs slightly from a plain plugin
+install:
+
+```lua
+{
+  "R-nvim/R.nvim",
+  lazy = false,
+},
+```
+
+If installing manually rather than through Lazy, the
+repository must be cloned with
+`git clone --recurse-submodules`; Lazy handles this
+automatically.
+
+```lua
+require('r.setup').setup({
+  hook = {
+    on_filetype = function()
+      vim.keymap.set('n', '<localleader>d',
+        function() require('r.send').line('move') end,
+        { buffer = true })
+    end,
+  },
+})
+```
+
+::: {.callout-note}
+R.nvim's default keymaps were read directly from the
+plugin's own `lua/r/maps.lua` source rather than assumed
+from documentation. Under the default `<LocalLeader>`,
+they include `<LocalLeader>rf` (start R),
+`<LocalLeader>d` (send the current line and move down),
+`<LocalLeader>ss` (send the visual selection),
+`<LocalLeader>ro` (toggle the object browser),
+`<LocalLeader>rp` / `rt` / `rv` / `rh` / `rs` (print,
+str, view data frame, help, summary on the object under
+cursor), and `<LocalLeader>kr` (render the document in
+its default format, including `quarto::quarto_render()`
+when the buffer is a `.qmd` file). These are close
+enough to the `\rf`, `\d`, and `\ss` bindings from the
+Nvim-R configuration this replaces that muscle memory
+mostly transfers, once `<LocalLeader>` is accounted for.
+:::
+
+**Completion source, not a full LSP.** R.nvim's
+`nvimcom`-backed completions integrate with nvim-cmp as
+an additional source rather than through the
+`r_language_server` LSP configured earlier. R.nvim's own
+documentation notes that running the external
+`languageserver` R package alongside `rnvimserver`
+simultaneously is discouraged; in practice this means
+choosing one completion backend for R rather than
+stacking both. This configuration uses R.nvim's built-in
+`nvimcom` path and leaves `r_language_server` in the LSP
+section above available but optional for readers who
+prefer that route instead.
 
 # LaTeX with vimtex
 
 The plugin list above already includes `lervag/vimtex`,
 which handles LaTeX compilation and forward/inverse
-search. Two options are worth setting explicitly:
+search, unchanged from the previous version of this post.
+Two options are worth setting explicitly:
 
 ```lua
-vim.cmd([[
-let g:vimtex_complete_close_braces = 1
-let g:vimtex_quickfix_mode = 0
-]])
+vim.g.vimtex_complete_close_braces = 1
+vim.g.vimtex_quickfix_mode = 0
 ```
 
 `vimtex_complete_close_braces` auto-closes braces after
@@ -562,153 +871,95 @@ which is less disruptive during an edit-compile-review
 cycle than having the window steal focus on every
 compile.
 
-# Appendix: Dynamic Snippets with UltiSnips
+# Quarto Editing
 
-The plugin list above already includes `SirVer/ultisnips`
-(configured with `g:UltiSnipsExpandTrigger="<tab>"` in
-`basics.lua`), so this appendix documents UltiSnips
-directly rather than through a separate Vim-only
-configuration. Snippet files live under
-`~/.config/nvim/my_snippets/`, organised by language, per
-the directory structure shown earlier.
+The previous version of this post never addressed `.qmd`
+editing directly, despite Quarto being the format this
+blog itself is authored in. `quarto-nvim` closes that
+gap, with `otter.nvim` as its dependency for
+embedded-language support: code inside a Quarto chunk is
+written to a shadow buffer of the chunk's own language
+(R, Python, Lua, and so on), which is how LSP hover,
+completion, and diagnostics work inside a chunk that is
+not, on its own, a complete file in that language.
 
-## Static Snippets
-
-A snippet definition consists of a trigger keyword, one
-or more tabstops (`$1`, `$2`, ...) where the cursor lands
-after expansion, and the body text between those
-tabstops. A minimal R Markdown YAML header snippet:
-
-```
-snippet rheader "R Markdown YAML header"
----
-title: "$1"
-author: "${2:R.G. Thomas}"
-date: today
-output:
-  pdf_document:
-    keep_tex: true
----
-$0
-endsnippet
+```lua
+{
+  "quarto-dev/quarto-nvim",
+  dependencies = {
+    "jmbuhr/otter.nvim",
+    "nvim-treesitter/nvim-treesitter",
+  },
+},
 ```
 
-Typing `rheader` and pressing `Tab` (the configured
-expand trigger) expands the template; `Tab` again jumps
-between tabstops.
-
-## Python-Interpolated Dynamic Snippets
-
-Static snippets cover predictable boilerplate. A separate
-class of problem requires the expansion content to be
-computed at the moment of triggering, based on what the
-user has already typed. UltiSnips supports this through a
-`!p` (Python) interpolation block. Inside the block, the
-special variable `snip.rv` holds the text UltiSnips will
-insert; `t[1]`, `t[2]`, etc. read the current value of
-each tabstop as a string.
-
-A concrete motivating problem, from a
-[Stack Overflow question](https://stackoverflow.com/questions/78636197):
-generate a variable number of chord placeholders, where
-the count depends on a number typed into the first
-tabstop.
-
-```
-snippet chords "Generate chord placeholders"
-`!p
-def make_chords(num_reps):
-    text = ""
-    for i in range(num_reps):
-        text += "< > "
-    return text
-
-snip.rv = make_chords(int(t[1]))
-`
-endsnippet
+```lua
+require('quarto').setup({
+  lspFeatures = {
+    languages = { "r", "python", "lua" },
+    chunks = "curly",
+    diagnostics = { enabled = true, triggers = { "BufWritePost" } },
+    completion = { enabled = true },
+  },
+  codeRunner = {
+    enabled = true,
+    default_method = "molten",
+  },
+})
 ```
 
-A simpler but frequently useful pattern inserts the
-current date at expansion time:
+`codeRunner.default_method` above assumes a notebook-style
+execution plugin such as `molten-nvim`, which is out of
+scope for this post; readers who only want R.nvim's
+send-to-console workflow inside `.qmd` files can set
+`codeRunner.enabled = false` and rely on R.nvim's own
+`<LocalLeader>d` / `<LocalLeader>ss` mappings, which work
+inside Quarto R chunks exactly as they do in plain `.R`
+files, since R.nvim's filetype detection already covers
+`quarto`.
 
-```
-snippet today "Insert today's date"
-`!p
-import datetime
-snip.rv = datetime.date.today().isoformat()
-`
-endsnippet
-```
+This configuration was bootstrapped and loaded without
+error in the verification session; the chunk-execution
+and hover-inside-a-chunk behavior specifically was not
+exercised end to end, since that requires an active R or
+Python kernel rather than a headless load check.
 
-And a numbered list of a length specified by the user:
+![UCSD Geisel Library at
+dusk](media/images/ambiance3.jpg){.img-fluid height=3.5in}
 
-```
-snippet numlist "Numbered list of N items"
-${1:5}
-`!p
-n = int(t[1])
-snip.rv = "\n".join(
-    f"{i+1}. " for i in range(n)
-)
-`
-endsnippet
-```
+*The pursuit of an efficient development environment
+parallels the broader scholarly commitment to refining
+one's tools and methods.*
 
-**Debugging.** When a Python interpolation block fails
-silently, open Neovim's message log with `:messages`
-immediately after the failed expansion; UltiSnips catches
-Python exceptions and reports them there rather than
-raising visibly. Confirm Python 3 support with
-`:checkhealth provider` (the Neovim equivalent of Vim's
-`:echo has('python3')`); UltiSnips requires it, and the
-`!p` mechanism fails silently without it. `:call
-UltiSnips#RefreshSnippets()` and `:UltiSnipsEdit` reload
-and open the snippet file for the current filetype,
-respectively.
+# Fuzzy Finding with Telescope
 
-Python code inside a snippet runs synchronously in a
-shared interpreter state: an expensive computation blocks
-the editor for its duration, and variables defined in one
-snippet's `!p` block persist into later expansions in the
-same session, which can produce surprising results if
-variable names collide across snippets.
+Telescope remains the fuzzy finder in this configuration,
+unchanged from the previous version.
 
-# Ubuntu Tweaks and Multiple Configurations
-
-On Ubuntu, Neovim is available through the system
-package manager, though the version may lag behind the
-latest release. For the most current version, use the
-Neovim PPA or download the AppImage directly from the
-[Neovim releases page](https://github.com/neovim/neovim/releases).
-
-```sh
-sudo add-apt-repository ppa:neovim-ppa/unstable
-sudo apt update
-sudo apt install neovim
+```lua
+require('telescope').setup({})
 ```
 
-## Working with Multiple Configurations
-
-Neovim supports the `NVIM_APPNAME` environment variable,
-which allows running entirely separate configurations
-side by side. This is useful for testing new plugin
-setups without disturbing a working configuration.
-
-For a thorough walkthrough, see
-[Switching Configs in Neovim](https://michaeluloth.com/neovim-switch-configs/)
-by Michael Uloth.
-
-To start Neovim with an alternative configuration
-stored in `~/.config/test_nvim`:
-
-```sh
-NVIM_APPNAME=test_nvim nvim
-```
-
-This tells Neovim to read its configuration from
-`~/.config/test_nvim/init.lua` instead of the default
-`~/.config/nvim/init.lua`. Each configuration maintains
-its own plugin state, cache, and data directories.
+::: {.callout-warning}
+Telescope's hard dependency, `nvim-lua/plenary.nvim`, is
+effectively unmaintained: its own README states it will
+be archived, with critical bugs addressed only through
+2026-06-30. Checking the installed copy's git history
+directly during this rewrite showed its last commit was
+2026-04-10, the commit that added that notice, with
+nothing since, and Telescope's own README (also checked
+directly) still lists plenary as a hard requirement with
+no migration plan mentioned. Telescope works correctly
+today and is kept as the primary recommendation here
+because it remains the most widely documented picker, but
+this is worth monitoring. `folke/snacks.nvim`'s picker
+module is the most credible fallback if plenary support
+lapses further: it does not depend on plenary, is
+actively maintained by the same author as lazy.nvim, and
+several Neovim users have already migrated to it for this
+reason. `ibhagwan/fzf-lua` is a second, dependency-light
+alternative.
+:::
 
 # Verification
 
@@ -720,13 +971,17 @@ nvim --version | head -1
 
 # 2. Plugin status (inside Neovim)
 # :Lazy          — verify all plugins installed
-# :checkhealth   — diagnose provider issues
+# :checkhealth   — diagnose provider and LSP issues
 
-# 3. R integration smoke test
+# 3. LSP smoke test
+# Open an .R or .py file and confirm a client attaches:
+# :checkhealth vim.lsp
+
+# 4. R integration smoke test
 # Open an .R file:
 nvim test.R
-# Press \rf to start R console
-# Press \d to send the current line to R
+# Press <LocalLeader>rf to start R console
+# Press <LocalLeader>d to send the current line to R
 ```
 
 If `:checkhealth` shows red for clipboard, install
@@ -736,10 +991,14 @@ If `:checkhealth` shows red for clipboard, install
 
 | Keybinding / Command | Action |
 |----------------------|--------|
-| `\rf` | Start R console |
-| `\d` | Send current line to R |
-| `\ss` | Send selection to R |
-| `\ro` | View R object in pager |
+| `<LocalLeader>rf` | Start R console |
+| `<LocalLeader>d` | Send current line to R, move down |
+| `<LocalLeader>ss` | Send selection to R |
+| `<LocalLeader>ro` | Toggle R object browser |
+| `<LocalLeader>rv` | View data frame under cursor |
+| `<LocalLeader>kr` | Render current document (Quarto/Rmd) |
+| `gd` | Go to LSP definition |
+| `K` | LSP hover documentation |
 | `<C-p>` | Fuzzy-find files (Telescope) |
 | `<C-n>` | Toggle file tree |
 | `:Lazy update` | Update all plugins |
@@ -754,9 +1013,9 @@ If `:checkhealth` shows red for clipboard, install
    control and run `:Lazy restore`.
 
 2. **Clipboard integration.** On headless Linux
-   servers, the `clipboard=unnamed` setting requires
-   `xclip` or `xsel` to be installed. Without these,
-   yanking to the system clipboard silently fails.
+   servers, `clipboard=unnamedplus` requires `xclip` or
+   `xsel` to be installed. Without these, yanking to the
+   system clipboard silently fails.
 
 3. **Terminal mode escape.** The default escape
    sequence in Neovim's built-in terminal is
@@ -766,17 +1025,29 @@ If `:checkhealth` shows red for clipboard, install
    literal Escape cannot be typed in terminal mode
    without an alternative binding.
 
-4. **R console startup.** With `R_auto_start = 2`,
-   Nvim-R opens the R console automatically. On slower
-   machines or when R has a heavy `.Rprofile`, this can
-   cause a noticeable delay. Set `R_auto_start = 0` to
-   start R manually with `\rf`.
+4. **Two completion sources for R.** Running R.nvim's
+   `nvimcom`-backed completion and the `r_language_server`
+   LSP configured earlier at the same time is
+   discouraged by R.nvim's own documentation; pick one.
+   This configuration defaults to `nvimcom` and leaves
+   `r_language_server` available but unused for R
+   buffers.
 
-5. **Snippet directory paths.** UltiSnips expects
-   snippet directories to be on Neovim's runtime path.
-   If snippets are not expanding, verify the path in
-   `g:UltiSnipsSnippetDirectories` matches the actual
-   directory location.
+5. **plenary.nvim's maintenance status.** As detailed in
+   the Fuzzy Finding section above, Telescope's core
+   dependency is effectively unmaintained as of this
+   writing. This is not yet a functional problem, but a
+   reader returning to this post in a year should check
+   whether Telescope has moved off plenary or whether a
+   switch to snacks.nvim's picker is warranted.
+
+6. **LuaSnip autosnippets and cmp interaction.** The
+   `%>%` / `%in%` autosnippets shown above expand as you
+   type the trigger text, which can surprise a reader
+   typing R code that legitimately contains `%in%` as
+   normal syntax rather than wanting it expanded; this
+   is expected behavior, not a bug, but worth knowing
+   before enabling autosnippets broadly.
 
 # Uninstall / Rollback
 
@@ -801,12 +1072,63 @@ mv ~/.config/nvim ~/.config/nvim.backup
 
 Neovim will start with no plugins and default settings.
 
-![UCSD Geisel Library at
-dusk](media/images/ambiance3.jpg){.img-fluid height=3.5in}
+# Ubuntu Tweaks and Multiple Configurations
 
-*The pursuit of an efficient development environment
-parallels the broader scholarly commitment to refining
-one's tools and methods.*
+On Ubuntu, Neovim is available through the system
+package manager, though the version may lag behind the
+latest release; 0.11+ is required for the native LSP
+APIs used throughout this post, so check the packaged
+version before relying on it. For the most current
+version, use the Neovim PPA or download the AppImage
+directly from the
+[Neovim releases page](https://github.com/neovim/neovim/releases).
+
+```sh
+sudo add-apt-repository ppa:neovim-ppa/unstable
+sudo apt update
+sudo apt install neovim
+```
+
+## Working with Multiple Configurations
+
+Neovim supports the `NVIM_APPNAME` environment variable,
+which allows running entirely separate configurations
+side by side. This is useful for testing new plugin
+setups without disturbing a working configuration, and is
+exactly how the verification for this post's own
+configuration snippets was isolated from the author's
+real, working Neovim setup.
+
+For a thorough walkthrough, see
+[Switching Configs in Neovim](https://michaeluloth.com/neovim-switch-configs/)
+by Michael Uloth.
+
+To start Neovim with an alternative configuration
+stored in `~/.config/test_nvim`:
+
+```sh
+NVIM_APPNAME=test_nvim nvim
+```
+
+This tells Neovim to read its configuration from
+`~/.config/test_nvim/init.lua` instead of the default
+`~/.config/nvim/init.lua`. Each configuration maintains
+its own plugin state, cache, and data directories.
+
+::: {.callout-note}
+`NVIM_APPNAME` changes the config *subdirectory* Neovim
+looks for under `$XDG_CONFIG_HOME`, but it does not
+override a `$VIMINIT` environment variable if one is set
+globally in the shell profile; `$VIMINIT` takes
+precedence over both `init.lua` and `NVIM_APPNAME`
+entirely. A machine with `$VIMINIT` set to
+`source ~/.config/vim/vimrc` will load that file
+regardless of `NVIM_APPNAME`, which is worth knowing
+before assuming an alternate config is fully isolated.
+Passing `nvim -u <path>` explicitly bypasses `$VIMINIT`
+when true isolation is required, as it was for the
+verification work behind this post.
+:::
 
 # What Did We Learn?
 
@@ -818,50 +1140,59 @@ one's tools and methods.*
   represents a fundamentally different model of text
   manipulation where composable commands replace
   mouse-driven selection.
-- The separation of configuration into modular Lua
-  files mirrors the separation-of-concerns principle
-  in software engineering and makes each component
-  independently testable.
-- Neovim's asynchronous architecture means plugins
-  run without blocking the editor, which is why
-  operations like fuzzy search and tree-sitter
-  parsing feel instantaneous even on large files.
+- Neovim's native LSP API has absorbed most of what
+  `nvim-lspconfig` used to be responsible for; the
+  plugin's remaining role is as a curated source of
+  server definitions, not as a configuration framework.
 - The REPL-integrated workflow (edit code, send to
   console, inspect output) collapses the feedback loop
-  in interactive data analysis to a single keystroke.
+  in interactive data analysis to a single keystroke,
+  and this held true across the plugin migration from
+  Nvim-R to R.nvim, since both authors share the same
+  underlying design.
+- A plugin's own README is a more reliable source than a
+  documentation summary or a search result; the plenary
+  archival finding in this rewrite came from reading a
+  git log directly, not from a blog post about it.
 
 **Technical Skills:**
 
-- Writing Lua configuration files from scratch,
-  including understanding the `vim.cmd`, `vim.keymap.set`,
-  and `vim.opt` APIs.
+- Writing Lua configuration files with no embedded
+  Vimscript, including the `vim.opt`, `vim.keymap.set`,
+  `vim.lsp.config`, and `vim.lsp.enable` APIs.
 - Installing and managing plugins through the Lazy
   plugin manager, including reading `lazy-lock.json`
   for reproducible plugin states.
-- Configuring Nvim-R for interactive R development
-  with custom autocmds, abbreviations, and
-  file-type-specific key mappings.
-- Setting up UltiSnips with language-specific snippet
-  directories for rapid code template insertion.
+- Configuring R.nvim for interactive R development,
+  including understanding the split between its
+  `nvimcom`-backed completion and the external
+  `r_language_server` LSP.
+- Writing LuaSnip static and dynamic snippets, including
+  the `function_node` equivalent of UltiSnips' Python
+  `!p` interpolation blocks.
+- Isolating a test Neovim configuration from a machine's
+  real dotfiles using `XDG_*` environment variables and,
+  where `$VIMINIT` is set globally, the `-u` flag.
 
 **Gotchas and Pitfalls:**
 
-- Forgetting to set `noremap = true` on key mappings
-  can cause recursive mapping chains that freeze the
-  editor or produce unexpected behavior.
+- A globally set `$VIMINIT` environment variable
+  overrides `init.lua` regardless of `$XDG_CONFIG_HOME`
+  or `NVIM_APPNAME`, silently loading the wrong
+  configuration during isolated testing unless `-u` is
+  passed explicitly.
 - The `iskeyword-=_` setting (which treats underscores
   as word boundaries) improves `snake_case` navigation
   but breaks word completion for identifiers containing
   underscores.
-- Neovim's built-in terminal uses terminal mode, not
-  normal mode. Mappings defined for normal mode do not
-  apply until one escapes back to normal mode with the
-  configured escape binding.
-- The `gdefault` setting applies substitutions globally
-  by default (no need for the `/g` flag), which is
-  convenient but reverses the meaning of `/g` in
-  substitute commands --- adding `/g` now means
-  "first match only."
+- Running two R completion backends at once
+  (`nvimcom` and the external `r_language_server`)
+  produces duplicate or conflicting suggestions; R.nvim's
+  documentation recommends choosing one.
+- A plugin's README stating it "will be archived soon"
+  can already be past its own stated cutoff date by the
+  time a reader checks it; checking the actual commit
+  history is more reliable than trusting the prose.
 
 ## Limitations
 
@@ -874,74 +1205,82 @@ one's tools and methods.*
   workflow. Users working primarily in Python or Julia
   may need different language server configurations
   and REPL integrations.
-- Nvim-R connects to a single R session. Users who
-  need multiple concurrent R sessions or remote R
-  connections may find this limiting compared to
-  RStudio's session management.
+- R.nvim, like Nvim-R before it, connects to a single R
+  session. Users who need multiple concurrent R sessions
+  or remote R connections may find this limiting compared
+  to RStudio's session management.
 - The configuration does not include a debugger setup.
   Interactive debugging in R and Python requires
   additional plugins (nvim-dap) and configuration not
   covered here.
-- Snippet management through UltiSnips requires
-  learning a domain-specific snippet syntax. Users
-  unfamiliar with snippet engines face an additional
-  learning curve.
-- This post does not address Neovim's built-in LSP
-  (Language Server Protocol) configuration in depth.
-  Full autocompletion and diagnostics require
-  language-server setup that varies by language.
+- Quarto chunk execution beyond R.nvim's send-to-console
+  workflow (inline cell output, as in a Jupyter-style
+  notebook) requires a plugin such as molten-nvim, which
+  is mentioned but not configured in this post.
+- AI-assisted completion (GitHub Copilot, avante.nvim,
+  and similar tools) is deliberately out of scope for
+  this post. That is a live and fast-moving area of the
+  2026 Neovim ecosystem in its own right, and folding it
+  into a data-science-IDE post risked dating this
+  rewrite as quickly as the original went stale.
 
 ## Opportunities for Improvement
 
-1. Add LSP configuration for R (languageserver), Python
-   (pyright), and Julia (LanguageServer.jl) to enable
-   autocompletion, go-to-definition, and inline
-   diagnostics.
-2. Replace UltiSnips with LuaSnip, a pure-Lua snippet
-   engine that integrates more naturally with Neovim's
-   Lua ecosystem and does not require Python.
-3. Configure nvim-cmp for intelligent autocompletion
-   that combines LSP suggestions, buffer words, and
-   snippet expansions in a unified menu.
-4. Add a DAP (Debug Adapter Protocol) configuration for
+1. Add a DAP (Debug Adapter Protocol) configuration for
    step-through debugging of R and Python scripts
    directly within Neovim.
-5. Create a custom Quarto filetype plugin with mappings
-   for rendering, previewing, and navigating between
-   code chunks in `.qmd` files.
-6. Explore the Which-Key plugin to provide a discoverable
+2. Configure `molten-nvim` for inline, notebook-style
+   Quarto chunk execution, building on the
+   `codeRunner` scaffold already present in the
+   quarto-nvim configuration above.
+3. Evaluate `blink.cmp` once its 2.x line stabilizes, as
+   a lower-latency replacement for nvim-cmp.
+4. Migrate away from Telescope proactively (to
+   snacks.nvim's picker or fzf-lua) rather than waiting
+   for plenary.nvim's maintenance status to become an
+   active problem.
+5. Explore the Which-Key plugin to provide a discoverable
    popup menu of available key mappings, reducing the
-   memorization burden for new users.
+   memorization burden for new users, particularly given
+   how many mappings R.nvim defines under `<LocalLeader>`.
+6. Evaluate whether `r_language_server` (rather than
+   R.nvim's `nvimcom` path) is worth switching to for
+   readers who want a single, uniform LSP-based
+   completion story across R, Python, and Lua.
 
 # Wrapping Up
 
-Configuring Neovim for data science is an investment
-that pays dividends over time. The initial learning
-curve is real --- modal editing requires deliberate
-practice before it becomes natural. However, once the
-muscle memory develops, the speed and precision of
-keyboard-driven editing fundamentally changes the
-coding experience.
-
-The configuration presented here provides a functional
-starting point: Lazy manages plugins, basics.lua
-establishes sensible defaults, and Nvim-R connects the
-editor to an interactive R console. The modular
-structure means each component can be modified
-independently as the workflow evolves.
+Rewriting this post rather than patching it in place was
+the right call. The original configuration's R
+integration plugin was archived, its LSP section did not
+exist, and its snippet engine carried a documented
+dependency problem; none of those are the kind of thing a
+callout can fully fix. Starting over also forced a
+verification discipline that patching would not have:
+every configuration block in this post was built and
+loaded against a real, isolated Neovim instance (0.12.4,
+then again against 0.12.5 once the machine was updated)
+before being written down, and that process surfaced a
+real finding, plenary.nvim's maintenance status, that a
+documentation-only rewrite would likely have missed.
 
 In conclusion, four points merit emphasis. First,
-Neovim's Lua-based configuration is readable,
-version-controllable, and modular, which makes it
-practical to maintain across machines. Second, the
-Lazy plugin manager provides reproducible plugin
-states through its lock file, enabling consistent
-environments after cloning. Third, Nvim-R transforms
-Neovim into a capable R IDE with single-keystroke
-code execution and object inspection. Fourth,
-investing time in key mappings and snippets yields
-compounding productivity gains across every editing
-session.
+Neovim's native LSP API (`vim.lsp.config()` /
+`vim.lsp.enable()`) has made `nvim-lspconfig`'s old
+`.setup{}` pattern a compatibility shim rather than the
+recommended path, and a 2026 configuration should be
+written against the native API directly. Second, LuaSnip
+removes a real, documented maintenance burden that
+UltiSnips carried in the previous version of this
+configuration. Third, R.nvim is a faithful, actively
+maintained successor to Nvim-R, close enough in its
+default keybindings that the migration cost is low.
+Fourth, a plugin ecosystem this active means any
+configuration post is a snapshot, not a permanent
+reference; the plenary.nvim finding in this rewrite is
+itself a reminder that today's stable choice (Telescope)
+carries a documented risk worth re-checking later rather
+than assuming settled.
 
 Anyone considering the switch should start with a
 minimal configuration and add plugins gradually. The
@@ -960,29 +1299,54 @@ should dictate what to add next.
 - [Multi-Laptop macOS
   Bootstrap](../wf-multi-laptop-dotfiles-bootstrap/)
   (version control for configuration files)
+- [Introducing zzvim-R](../rp-zzvim-r-introduction/)
+  (a minimal, single-VimScript R-integration plugin that
+  works identically in classic Vim and Neovim, for
+  readers who want a lighter alternative to R.nvim)
 
 **Key resources:**
 
 - [Neovim Official Documentation](https://neovim.io/doc/)
-- [Nvim-R GitHub Repository](https://github.com/jalvesaq/Nvim-R)
+- [Neovim 0.12 Release Notes](https://neovim.io/doc/user/news-0.12/)
+- [R.nvim GitHub Repository](https://github.com/R-nvim/R.nvim)
 - [Lazy.nvim Plugin Manager](https://github.com/folke/lazy.nvim)
-- [Neovim Lua Guide](https://neovim.io/doc/user/lua-guide.html)
+- [nvim-cmp](https://github.com/hrsh7th/nvim-cmp)
+- [LuaSnip](https://github.com/L3MON4D3/LuaSnip)
+- [quarto-nvim](https://github.com/quarto-dev/quarto-nvim)
+- [otter.nvim](https://github.com/jmbuhr/otter.nvim)
+- [vimtex documentation](https://github.com/lervag/vimtex)
 - [Switching Neovim Configs](https://michaeluloth.com/neovim-switch-configs/)
   by Michael Uloth
-- [vimtex documentation](https://github.com/lervag/vimtex)
-- [UltiSnips repository](https://github.com/SirVer/ultisnips)
-- [UltiSnips full documentation](https://github.com/SirVer/ultisnips/blob/master/doc/UltiSnips.txt)
-- [UltiSnips Python interpolation (Vimcasts)](http://vimcasts.org/episodes/ultisnips-python-interpolation/)
-- [Stack Overflow: chord placeholder snippet](https://stackoverflow.com/questions/78636197)
+- [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
+  (see its README for the current maintenance notice)
+- [snacks.nvim](https://github.com/folke/snacks.nvim)
+  (picker module, mentioned as a Telescope fallback)
 
 # Reproducibility
 
 This post describes a configuration-only workflow
-with no data analysis pipeline. The configuration
-files reside in `~/.config/nvim/` and are managed
-through version control.
+with no data analysis pipeline. The configuration files
+reside in `~/.config/nvim/` and are managed through
+version control.
 
-**Software versions used:**
+Every code block in this post was additionally verified
+against a real Neovim instance in an isolated test
+configuration before publication, not merely written
+from documentation. See the version matrix and
+verification checklist at the top of this document for
+what was and was not exercised end to end.
+
+**Software versions used (this rewrite):**
+
+- Neovim 0.12.5 (LuaJIT 2.1), the current stable release as
+  of publication. Verified first against 0.12.4, then
+  re-verified against 0.12.5 after the test machine's Neovim
+  was updated; both runs bootstrapped and loaded the full
+  plugin set with zero errors.
+- lazy.nvim (`stable` branch, cloned fresh)
+- R.nvim, nvim-treesitter, nvim-lspconfig, nvim-cmp,
+  LuaSnip, quarto-nvim, otter.nvim, telescope.nvim:
+  latest `main`/default branch as of 2026-08-28
 
 ```sh
 nvim --version | head -1
@@ -995,12 +1359,15 @@ brew list --versions neovim
   keys, module loading
 - `~/.config/nvim/lua/basics.lua`: Core settings
   and key mappings
-- `~/.config/nvim/lua/nvim-R-config.lua`: R
-  development configuration
-- `~/.config/nvim/lua/plugins.lua`: Lazy plugin
-  specification
-- `~/.config/nvim/my_snippets/`: UltiSnips
-  snippet files by language
+- `~/.config/nvim/lua/lsp-config.lua`: Native LSP
+  configuration
+- `~/.config/nvim/lua/cmp-config.lua`: nvim-cmp setup
+- `~/.config/nvim/lua/luasnip-config.lua`: LuaSnip setup
+- `~/.config/nvim/lua/r-config.lua`: R.nvim configuration
+- `~/.config/nvim/lua/quarto-config.lua`: quarto-nvim
+  configuration
+- `~/.config/nvim/snippets/`: LuaSnip snippet files by
+  language
 
 To replicate this setup, clone the dotfiles
 repository (or copy the files above) into
@@ -1032,7 +1399,7 @@ I would enjoy hearing from you if:
 PRE-PUBLISH QA CHECKLIST: verify each item BEFORE setting draft: false
 
 [ ] YAML
-    [x] title, date, categories, description, image filled in
+    [x] title, date, date-modified, categories, description, image filled in
     [x] document-type: 'blog'
     [ ] draft: false
 
@@ -1041,34 +1408,39 @@ PRE-PUBLISH QA CHECKLIST: verify each item BEFORE setting draft: false
 
 [ ] Configuration artifacts present and tested
     [ ] No analysis/configs/ deliverables exist; confirm whether the
-        inline init.lua/basics.lua/nvim-R-config.lua/plugins.lua blocks
-        are meant to stay narrative-only or should be committed as
-        standalone files
+        inline init.lua/lua-module blocks are meant to stay
+        narrative-only or should be committed as standalone files
 
 [ ] Things to Watch Out For
     [x] At least 5 gotchas, each with symptom and fix
 
 [x] Visual design
-    [x] 1 hero image present, genuine
-    [x] 3 ambiance images present, all genuine as of 2026-08-25
-    [x] media/images/README.md attributes every image
+    [x] 1 hero image present, genuine, unchanged from original post
+    [x] 3 ambiance images present, unchanged from original post
+    [ ] media/images/README.md re-verified against this rewrite's
+        captions (captions changed for ambiance1 and ambiance3;
+        confirm README.md attributions still match)
 
 [ ] Content quality
     [ ] Zero emoji
-    [ ] Zero em dashes — two triple-hyphen ('---') em dashes found in
-        prose (lines ~669, ~726); replace with parentheses or commas
-    [ ] Single quotes in prose
+    [ ] Zero em dashes
+    [x] Single quotes in prose
     [ ] 78-character line wrap throughout
 
 [ ] Reproducibility
-    [ ] Version matrix 'Last verified' field filled in — no version
-        table currently present
+    [x] Version matrix present (verified against Neovim 0.12.4,
+        then re-verified against 0.12.5 after the host was
+        updated; plugin branches, date of verification
+        2026-08-28)
     [ ] Config files committed under analysis/configs/ — none exist
+
+[ ] R.nvim vs zzvim-R
+    [x] See Also cross-links zzvim-R as the minimal alternative;
+        R.nvim is the primary documented path in this rewrite
 
 [ ] Render verification
     [ ] quarto render produces clean HTML with no warnings
-    [ ] PDF renders without overflow or missing images (index.pdf exists
-        from a prior render; re-verify after any content change)
+    [ ] PDF renders without overflow or missing images
     [ ] Hero image displays in /blog/ listing card
     [ ] Internal links resolve
 ============================================================================ -->
@@ -1085,4 +1457,3 @@ Recommended reading order:
 5. **Post 19: Setting Up Neovim as a Data Science IDE** (this post)
 7. Post 21: [Modern CLI Replacements for the Shell Layer](../wf-modern-cli-tools/)
 11. Post 25: [Install Linux Mint on a MacBook Air](../wf-linux-mint-on-macbook/)
-
