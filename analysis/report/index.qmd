@@ -1132,7 +1132,7 @@ verification work behind this post.
 
 # What Did We Learn?
 
-## Lessons Learnt
+## Lessons Learned
 
 **Conceptual Understanding:**
 
