@@ -92,10 +92,10 @@ This post is a ground-up rewrite, not an update. The original
 version of this guide, published in early 2026, documented a
 working Neovim configuration built around Nvim-R, UltiSnips,
 and `nvim-lspconfig`'s `.setup{}` pattern. All three have since
-been superseded: Nvim-R was archived in 2023 and its plugin has
-now genuinely bit-rotted; UltiSnips' Python-interpreter
-dependency is a maintenance burden LuaSnip does not carry;
-and Neovim 0.11 and 0.12 moved LSP configuration into the
+been superseded. Nvim-R was archived in 2023 and its plugin has
+now genuinely bit-rotted. UltiSnips' Python-interpreter
+dependency is a maintenance burden LuaSnip does not carry, and
+Neovim 0.11 and 0.12 moved LSP configuration into the
 editor core, leaving `nvim-lspconfig`'s old `.setup{}` API a
 compatibility shim rather than the recommended path. Rather
 than patch those sections in place, this rewrite starts over
@@ -125,7 +125,7 @@ adjustments and working with multiple Neovim configurations.
 More formally, we document the Editor layer (Layer 5)
 of the Workflow Construct described in
 [A Workflow Construct for the Modern Data Scientist](../wf-construct-overview-anchor/). Neovim is the choice
-of editor at this layer; the layer is substitutable (with Vim,
+of editor at this layer. The layer is substitutable (with Vim,
 VS Code, RStudio, or a graphical IDE), but the contract the
 layer holds, modal scriptable text manipulation that behaves
 identically locally and over SSH, is what the higher layers
@@ -654,9 +654,9 @@ This exact block was bootstrapped and loaded without
 error in the verification session. `blink.cmp` was
 considered as an alternative: it is faster and ships
 with more batteries-included defaults, and is now the
-completion engine `kickstart.nvim` recommends, but its
-2.x line carries breaking changes relative to 1.x, and
-its LuaSnip integration changed shape between minor
+completion engine `kickstart.nvim` recommends. Its
+2.x line carries breaking changes relative to 1.x, though,
+and its LuaSnip integration changed shape between minor
 versions as recently as this year. nvim-cmp's slower
 pace of change is the better fit for a configuration
 meant to stay accurate without frequent revision; readers
@@ -1260,7 +1260,7 @@ verification discipline that patching would not have:
 every configuration block in this post was built and
 loaded against a real, isolated Neovim instance (0.12.4,
 then again against 0.12.5 once the machine was updated)
-before being written down, and that process surfaced a
+before being written down. That process surfaced a
 real finding, plenary.nvim's maintenance status, that a
 documentation-only rewrite would likely have missed.
 
