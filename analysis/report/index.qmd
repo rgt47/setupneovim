@@ -9,7 +9,7 @@ description: "Neovim's plugin ecosystem moves fast. This is a ground-up
   R.nvim rather than the plugins that carried the workflow two years ago."
 image: "media/images/hero.jpg"
 document-type: "blog"
-draft: true
+draft: false
 execute:
   echo: true
   warning: false
